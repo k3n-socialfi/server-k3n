@@ -31,11 +31,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let systemError: ISystemError;
     let finalResponse: FailureResponseDto;
 
-    if (message?.message >= 4000) {
+    if (message?.statusCode >= 4000) {
       systemError = ErrorsMap[message?.message];
 
       finalResponse = {
-        code: message?.message || 5000,
+        code: message?.statusCode || 5000,
         message: systemError?.message || 'unknown internal error',
         path: request.url,
         requestId: requestId,
@@ -49,7 +49,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         responseMsg = message?.message || 'unknown internal error';
       }
       finalResponse = {
-        code: message?.code || 4000,
+        code: message?.statusCode || 4000,
         message: responseMsg,
         path: request.url,
         requestId: requestId,
@@ -60,6 +60,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
     this.logger.debug(`Response:\n${JSON.stringify(finalResponse, null, 4)}`, HttpExceptionFilter.name);
     this.logger.log(`info: End RequestID: ${requestId}`, HttpExceptionFilter.name);
 
-    return response.status(systemError?.HTTPStatus || HttpStatus.INTERNAL_SERVER_ERROR).json(finalResponse);
+    return response.status(systemError?.statusCode || HttpStatus.INTERNAL_SERVER_ERROR).json(finalResponse);
   }
 }

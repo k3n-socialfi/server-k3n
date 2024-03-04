@@ -17,7 +17,7 @@ export class FailureResponseDto {
   readonly message: string | any;
 
   @ApiProperty({
-    example: `/api/v1/check`,
+    example: `/api/v1/...`,
     description: 'Path of the request'
   })
   @IsNotEmpty()
