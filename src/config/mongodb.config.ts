@@ -11,7 +11,7 @@ export class TypeOrmConfig {
             // port: +process.env.MONGO_PORT,
             // username: process.env.MONGO_USERNAME,
             // password: process.env.MONGO_PASSWORD,
-            // database: process.env.MONGO_DATABASE,
+            database: process.env.MONGO_DATABASE,
             url: process.env.MONGO_URL,
             autoLoadEntities: true,
             synchronize: true,
