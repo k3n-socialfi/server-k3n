@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-
-// import { RouteResponseDto } from 'src/modules.v1/route/dto/route-response.dto';
+import { responseType } from './response-type.dto';
+import { UserListResponseDto, UserResponseDto } from 'src/modules/users/dto/user-response.dto';
 
 export class ResponseDto<T> {
   @ApiProperty({
-    example: '0',
+    example: '200',
     description: 'System code'
   })
   @IsNotEmpty()
@@ -20,7 +20,7 @@ export class ResponseDto<T> {
   @IsString()
   readonly message: string;
 
-  @ApiProperty({})
+  @ApiProperty()
   readonly data: T;
 
   @ApiProperty({

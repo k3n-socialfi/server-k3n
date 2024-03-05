@@ -10,6 +10,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CoreModule } from './modules/core.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './modules/auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -19,11 +21,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       load: [MyConfigService.getConfiguration],
       isGlobal: true
     }),
+    JwtModule.register(MyConfigService.getJwtConfig()),
     TypeOrmModule.forRoot(MyConfigService.getTypeOrmConfig()),
     WinstonModule.forRoot(MyConfigService.getWinstonConfig(LoggerType.APP)),
     CoreModule,
     TerminusModule,
-    HttpModule
+    HttpModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService]

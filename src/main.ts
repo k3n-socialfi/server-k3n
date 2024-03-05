@@ -10,7 +10,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api/v1');
 
   // Setup Swagger
   const apiVersion = process.env.API_VERSION || 'v1';
@@ -18,6 +18,7 @@ async function bootstrap() {
     .setTitle('SocialFi Project API document')
     .setDescription('Document for SocialFi API')
     .setVersion(apiVersion)
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('docs', app, document);

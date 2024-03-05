@@ -17,9 +17,9 @@ export class LoggingInterceptor implements NestInterceptor {
       '' +
       time.getFullYear() +
       '-' +
-      time.getMonth() +
+      (time.getMonth() + 1) +
       '-' +
-      time.getDay() +
+      time.getDate() +
       '-' +
       Math.floor(Math.random() * 100000000);
     this.logger.log(
@@ -42,11 +42,11 @@ export class LoggingInterceptor implements NestInterceptor {
 
     // Handle response
     return next.handle().pipe(
-      map((data) => {
+      map((rs) => {
         const finalResponse: ResponseDto<any> = {
-          code: OkMap.SUCCESS.code,
-          message: OkMap.SUCCESS.message,
-          data: data,
+          code: rs.code,
+          message: rs.message,
+          data: rs.data,
           time: time.toISOString()
         };
 
