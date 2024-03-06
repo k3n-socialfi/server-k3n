@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Type } from 'class-transformer';
 import { ArrayMinSize, IsArray, IsNotEmpty, IsString, IsNumber, ValidateNested, IsObject } from 'class-validator';
 import { Column, ObjectId } from 'typeorm';
-import { BlockchainWallet, SocialNetwork } from '../entities/user.entity';
+import { BlockchainWallet, SocialNetwork } from '../../entities/user.entity';
 import { ResponseDto } from '@common/interceptors/success-response.dto';
 
 export abstract class UserResponseDto {
@@ -206,42 +206,3 @@ export class UserListResponseDto {
     totalItems: number;
 }
 
-export class SwaggerUserResponseDto extends ResponseDto<UserResponseDto> {
-    @ApiProperty({
-        example: `{
-            "userId": "65e36d87d655e4cb2eb1eef4",
-            "createdAt": 1709403527,
-            "updatedAt": 1709403527,
-            "isDeleted": false,
-            "username": "awesomeuser1234",
-            "role": "user",
-            "avatar": "avatar"
-          }`,
-        type: UserResponseDto
-    })
-    readonly data: UserResponseDto;
-}
-
-export class SwaggerUserListResponseDto extends ResponseDto<UserListResponseDto> {
-    @ApiProperty({
-        example: `{
-            "users": [
-              {
-                "userId": "65e36d87d655e4cb2eb1eef4",
-                "createdAt": 1709403527,
-                "updatedAt": 1709403527,
-                "isDeleted": false,
-                "username": "awesomeuser1234",
-                "role": "user",
-                "avatar": "avatar"
-              }
-            ],
-            "page": 0,
-            "pageSize": 1,
-            "totalPages": 1,
-            "totalItems": 1
-          }`,
-        type: UserListResponseDto
-    })
-    readonly data: UserListResponseDto;
-}

@@ -1,11 +1,11 @@
-import { BadRequestException, Inject, Injectable, Logger, UnauthorizedException, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectId, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserByAdminDto, CreateUserDto } from './dto/request/create-user.dto';
 import { ErrorsCodes, ErrorsMap } from '@common/constants/respond-errors';
-import { InternalUserResponseDto, LoginUserResponseDto, UserListResponseDto, UserResponseDto } from './dto/user-response.dto';
+import { InternalUserResponseDto, LoginUserResponseDto, UserListResponseDto, UserResponseDto } from './dto/response/user-response.dto';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { AuthService } from '../auth/auth.service';
 import { Role } from '@common/constants/enum';
@@ -73,7 +73,7 @@ export class UserService {
             }
         })
         if (!user) {
-            // throw new 
+            throw new NotFoundException('User not found!')
         }
         return user;
     }
@@ -83,8 +83,8 @@ export class UserService {
         return count;
     }
 
-    async createUser(request: CreateUserDto): Promise<UserResponseDto> {
-        const { username, email, password } = request;
+    async createUser(request: CreateUserByAdminDto): Promise<UserResponseDto> {
+        const { username, email, password, role } = request;
         const users = await this.userRep.find({
             where: {
                 username: username,
@@ -94,7 +94,7 @@ export class UserService {
         if (!users || users.length == 0) {
             const userCreated = {
                 username,
-                role: Role.User,
+                role: role || Role.User,
                 email: email,
                 password,
             };

@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 import { responseType } from './response-type.dto';
-import { UserListResponseDto, UserResponseDto } from 'src/modules/users/dto/user-response.dto';
+import { UserListResponseDto, UserResponseDto } from 'src/modules/users/dto/response/user-response.dto';
 
 export class ResponseDto<T> {
   @ApiProperty({

@@ -5,10 +5,10 @@ import { RefreshTokenGuard } from 'src/modules/auth/guards/refreshToken.guard';
 import { AuthService } from './auth.service';
 import { ApiBadRequestResponse, ApiNotFoundResponse, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ResponseDto } from '@common/interceptors/success-response.dto';
-import { LoginUserResponseDto, UserResponseDto } from '../users/dto/user-response.dto';
+import { LoginUserResponseDto, UserResponseDto } from '../users/dto/response/user-response.dto';
 import { FailureResponseDto } from '@common/exceptions/failure-response.dto';
-import { LoginUserDto } from '../users/dto/login-user.dto';
-import { CreateUserDto } from '../users/dto/create-user.dto';
+import { LoginUserDto } from '../users/dto/request/login-user.dto';
+import { CreateUserDto } from '../users/dto/request/create-user.dto';
 
 
 @Controller('auth')

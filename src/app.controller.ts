@@ -9,7 +9,12 @@ export class AppController {
   constructor(private readonly appService: AppService) { }
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  getHello() {
+    return {
+      code: 200,
+      data: this.appService.getHello(),
+      message: "good"
+
+    }
   }
 }
