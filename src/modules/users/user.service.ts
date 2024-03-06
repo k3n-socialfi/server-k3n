@@ -10,6 +10,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { AuthService } from '../auth/auth.service';
 import { Role } from '@common/constants/enum';
 import { RequestUserQuery } from './dto/request/query-user.dto';
+import { UpdateUserByAdminDto } from './dto/request/admin-update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -73,7 +74,7 @@ export class UserService {
             }
         })
         if (!user) {
-            throw new NotFoundException('User not found!')
+            throw new NotFoundException(`User with ID ${userId} not found.`)
         }
         return user;
     }
@@ -106,4 +107,14 @@ export class UserService {
             throw new BadRequestException(ErrorsMap[ErrorsCodes.ALREADY_EXISTS]);
         }
     }
+
+    async updateUserByAdmin(userId: string, request: UpdateUserByAdminDto): Promise<UserResponseDto> {
+        const { role } = request;
+        let users = await this.findByUserId(userId);
+        if (role) users.role = role;
+        await this.userRep.save(users);
+        return users;
+    }
+
+    // async updateUser(userId: string, request: )
 }

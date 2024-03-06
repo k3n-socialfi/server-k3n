@@ -34,7 +34,7 @@ export class AuthController {
     @Body() request: LoginUserDto,
   ) {
     return {
-      code: 201,
+      code: 200,
       message: "Sigin successful",
       data: await this.authService.signIn(request)
     };
@@ -47,11 +47,11 @@ export class AuthController {
   //   return this.authService.refreshTokens(refreshToken);
   // }
   @Get('refresh')
-  async refreshTokens(@Query('refresh_token') refresh_token: string) {
+  async refreshTokens(@Param('refresh_token') refresh_token: string) {
     // console.log('refresh_token:', refresh_token)
     // const refreshToken = req.headers['refreshToken'].toString();
     return {
-      code: 201,
+      code: 200,
       message: "Get refreshTokens successful",
       data: await this.authService.refreshTokens(refresh_token)
     };

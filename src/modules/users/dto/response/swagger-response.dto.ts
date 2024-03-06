@@ -54,7 +54,40 @@ export class SwaggerCreateUserByAdminResponseDto extends ResponseDto<UserRespons
     readonly code: number;
 
     @ApiProperty({
-        example: `Create user by admin response`,
+        example: `Create user by admin successful`,
+        description: 'Response message'
+    })
+    @IsNotEmpty()
+    @IsString()
+    readonly message: string;
+
+    @ApiProperty({
+        example: `{
+              "username": "awesomeuser123b",
+              "role": "user",
+              "email": "david.thompson@email.com",
+              "password": "David123@",
+              "createdAt": 1709569827,
+              "updatedAt": 1709569827,
+              "isDeleted": false,
+              "userId": "65e5f722c4363a928afc1168"
+            }`,
+        type: UserResponseDto
+    })
+    readonly data: UserResponseDto;
+}
+
+export class SwaggerUpdateUserByAdminResponseDto extends ResponseDto<UserResponseDto> {
+    @ApiProperty({
+        example: '200',
+        description: 'System code'
+    })
+    @IsNotEmpty()
+    @IsString()
+    readonly code: number;
+
+    @ApiProperty({
+        example: `Update user by admin successful`,
         description: 'Response message'
     })
     @IsNotEmpty()
