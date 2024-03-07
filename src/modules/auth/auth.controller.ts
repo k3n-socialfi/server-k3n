@@ -9,6 +9,7 @@ import { LoginUserResponseDto, UserResponseDto } from '../users/dto/response/use
 import { FailureResponseDto } from '@common/exceptions/failure-response.dto';
 import { LoginUserDto } from '../users/dto/request/login-user.dto';
 import { CreateUserDto } from '../users/dto/request/create-user.dto';
+import { LoginWalletDto } from './dto/login-wallet.dto';
 
 
 @Controller('auth')
@@ -54,6 +55,21 @@ export class AuthController {
       code: 200,
       message: "Get refreshTokens successful",
       data: await this.authService.refreshTokens(refresh_token)
+    };
+  }
+
+  @Post('login-wallet')
+  @ApiResponse({
+    description: 'Respond',
+    type: ResponseDto<UserResponseDto>
+  })
+  async loginWallet(
+    @Body() request: LoginWalletDto,
+  ) {
+    return {
+      code: 200,
+      message: "Sigin successful",
+      data: await this.authService.loginWallet(request)
     };
   }
 }

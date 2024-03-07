@@ -31,7 +31,7 @@ export class CreateUserDto {
 
     @IsEmail()
     @IsOptional()
-    email: string;
+    email?: string;
 
     @ApiProperty({
         example: 'David123@',
@@ -52,4 +52,15 @@ export class CreateUserByAdminDto extends CreateUserDto {
     @IsOptional()
     @IsIn(['user', 'admin'], { message: 'Role must be either "user" or "admin"' })
     role?: string;
+}
+
+export class CreateUserWithWalletDto extends CreateUserDto {
+    @ApiProperty({
+        example: 'awesomeuser123',
+        description: 'The unique username of the user',
+        required: true
+    })
+    @IsNotEmpty()
+    @IsString()
+    address: string;
 }

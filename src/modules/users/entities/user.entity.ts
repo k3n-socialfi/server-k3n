@@ -3,7 +3,7 @@ import { Column, Entity, ObjectIdColumn } from 'typeorm';
 
 
 export class BlockchainWallet {
-    chainId: string;
+    chainId: number;
     address: string;
 }
 
@@ -34,11 +34,11 @@ export class User extends AbstractEntity {
     @Column()
     password: string;
 
-    @Column({ type: "jsonb", default: [] })
-    wallets: BlockchainWallet;
+    @Column({ default: [] })
+    wallets: BlockchainWallet[];
 
-    @Column({ type: "jsonb", default: [] })
-    socialProfiles: SocialNetwork;
+    @Column({ default: [] })
+    socialProfiles: SocialNetwork[];
 
     @Column({ default: '' })
     avatar: string;

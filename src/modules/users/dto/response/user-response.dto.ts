@@ -67,7 +67,7 @@ export abstract class UserResponseDto {
         }],
         description: 'A list of the user\'s blockchain wallets (format may vary)'
     })
-    wallets?: BlockchainWallet;
+    wallets?: BlockchainWallet[];
 
     @ApiProperty({
         example: [{
@@ -76,7 +76,7 @@ export abstract class UserResponseDto {
         }],
         description: 'Links to the user\'s social media profiles'
     })
-    socialProfiles?: SocialNetwork;
+    socialProfiles?: SocialNetwork[];
 
     @ApiProperty({
         example: 'https://example.com/profile_picture.jpg',

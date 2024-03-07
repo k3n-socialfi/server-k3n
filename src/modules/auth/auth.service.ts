@@ -11,6 +11,9 @@ import { CreateUserDto } from '../users/dto/request/create-user.dto';
 import { JwtType } from '@common/constants/enum';
 import { LoginUserResponseDto } from '../users/dto/response/user-response.dto';
 import { LoginUserDto } from '../users/dto/request/login-user.dto';
+import { randomString } from 'src/utils/helper';
+import { LoginWalletDto } from './dto/login-wallet.dto';
+import { verifySignature } from 'src/utils/verify-signature';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +22,39 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
   ) { }
+
+  async loginWallet(req: LoginWalletDto): Promise<LoginUserResponseDto> {
+    const { address, message, signature } = req;
+    const verified = verifySignature(message, signature, address);
+    if (!verified) throw new ForbiddenException('Access Denied');
+    const userExists = await this.usersService.findByUserAddress(address);
+    if (userExists) {
+      const tokens = await this.getTokens(userExists.userId, userExists.username, userExists.role);
+      return {
+        user: userExists,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken
+      }
+    } else {
+      // Hash password
+      const password = randomString(10);
+      const username = randomString(8);
+      const hash = await this.hashData(password);
+      const newUser = await this.usersService.createUserWithWallet({
+        username,
+        address,
+        password: hash,
+      });
+      const tokens = await this.getTokens(newUser.userId, newUser.username, newUser.role);
+      return {
+        user: newUser,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken
+      }
+    }
+
+  }
+
   async signUp(req: CreateUserDto): Promise<LoginUserResponseDto> {
     // Check if user exists
     const userExists = await this.usersService.findInternalByUsername(

@@ -2,8 +2,8 @@ import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Una
 import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectId, Repository } from 'typeorm';
-import { User } from './entities/user.entity';
-import { CreateUserByAdminDto, CreateUserDto } from './dto/request/create-user.dto';
+import { BlockchainWallet, User } from './entities/user.entity';
+import { CreateUserByAdminDto, CreateUserDto, CreateUserWithWalletDto } from './dto/request/create-user.dto';
 import { ErrorsCodes, ErrorsMap } from '@common/constants/respond-errors';
 import { InternalUserResponseDto, LoginUserResponseDto, UserListResponseDto, UserResponseDto } from './dto/response/user-response.dto';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -79,6 +79,20 @@ export class UserService {
         return user;
     }
 
+    async findByUserAddress(address: string): Promise<UserResponseDto> {
+        try {
+            const users = await this.userRep.find({});
+            const userWithAddress = users?.find(user =>
+                user.wallets?.some(wallet => wallet.address === address)
+            );
+            return userWithAddress;
+        } catch (err) {
+            console.log('err:', err)
+            throw err
+        }
+
+    }
+
     async countDocuments(): Promise<number> {
         const count = await this.userRep.count();
         return count;
@@ -106,6 +120,22 @@ export class UserService {
             console.log('User has been created wallet!');
             throw new BadRequestException(ErrorsMap[ErrorsCodes.ALREADY_EXISTS]);
         }
+    }
+
+    async createUserWithWallet(request: CreateUserWithWalletDto): Promise<UserResponseDto> {
+        const { username, password, address } = request;
+        const wallet = new BlockchainWallet;
+        wallet.chainId = 1;
+        wallet.address = address;
+        const userCreated = {
+            username,
+            password,
+            role: Role.User,
+            wallets: [wallet],
+        };
+        const saveUser = this.userRep.create(userCreated);
+        await this.userRep.save(saveUser);
+        return saveUser;
     }
 
     async updateUserByAdmin(userId: string, request: UpdateUserByAdminDto): Promise<UserResponseDto> {
