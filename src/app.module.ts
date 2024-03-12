@@ -12,6 +12,7 @@ import { CoreModule } from './modules/core.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { TwitterModule } from './modules/twitter/twitter.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { JwtModule } from '@nestjs/jwt';
     CoreModule,
     TerminusModule,
     HttpModule,
-    AuthModule
+    AuthModule,
+    TwitterModule
   ],
   controllers: [AppController],
   providers: [AppService]
