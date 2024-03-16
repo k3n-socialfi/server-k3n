@@ -2,8 +2,8 @@ import { BadRequestException, Inject, Injectable, Logger, NotFoundException, Una
 import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectId, Repository } from 'typeorm';
-import { BlockchainWallet, User } from './entities/user.entity';
-import { CreateUserByAdminDto, CreateUserDto, CreateUserWithWalletDto } from './dto/request/create-user.dto';
+import { BlockchainWallet, SocialNetwork, User } from './entities/user.entity';
+import { CreateUserByAdminDto, CreateUserDto, CreateUserWithTwitterDto, CreateUserWithWalletDto } from './dto/request/create-user.dto';
 import { ErrorsCodes, ErrorsMap } from '@common/constants/respond-errors';
 import { InternalUserResponseDto, LoginUserResponseDto, UserListResponseDto, UserResponseDto } from './dto/response/user-response.dto';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -93,6 +93,20 @@ export class UserService {
 
     }
 
+    async findByTwitterUsername(username: string): Promise<UserResponseDto> {
+        try {
+            const users = await this.userRep.find({});
+            const userWithUsername = users?.find(user =>
+                user.socialProfiles?.some(social => social.username === username && social.social === 'twitter')
+            );
+            return userWithUsername;
+        } catch (err) {
+            console.log('err:', err)
+            throw err
+        }
+
+    }
+
     async countDocuments(): Promise<number> {
         const count = await this.userRep.count();
         return count;
@@ -126,12 +140,30 @@ export class UserService {
         const { username, password, address } = request;
         const wallet = new BlockchainWallet;
         wallet.chainId = 1;
-        wallet.address = address;
+        wallet.address = address.toLowerCase();
         const userCreated = {
             username,
             password,
             role: Role.User,
             wallets: [wallet],
+        };
+        const saveUser = this.userRep.create(userCreated);
+        await this.userRep.save(saveUser);
+        return saveUser;
+    }
+
+    async createUserWithTwitter(request: CreateUserWithTwitterDto): Promise<UserResponseDto> {
+        const { username, displayName, image, password } = request;
+        const social = new SocialNetwork;
+        social.social = 'twitter';
+        social.username = username.toLowerCase();
+        const userCreated = {
+            username: username.toLowerCase(),
+            avatar: image,
+            fullName: displayName,
+            password,
+            role: Role.User,
+            socialProfiles: [social],
         };
         const saveUser = this.userRep.create(userCreated);
         await this.userRep.save(saveUser);

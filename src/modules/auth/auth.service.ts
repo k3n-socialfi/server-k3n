@@ -14,6 +14,7 @@ import { LoginUserDto } from '../users/dto/request/login-user.dto';
 import { randomString } from 'src/utils/helper';
 import { LoginWalletDto } from './dto/login-wallet.dto';
 import { verifySignature } from 'src/utils/verify-signature';
+import { LoginWithTwitterDto } from './dto/login-twitter.dto';
 
 @Injectable()
 export class AuthService {
@@ -44,6 +45,37 @@ export class AuthService {
         username,
         address,
         password: hash,
+      });
+      const tokens = await this.getTokens(newUser.userId, newUser.username, newUser.role);
+      return {
+        user: newUser,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken
+      }
+    }
+
+  }
+
+  async loginWithTwitter(req: LoginWithTwitterDto): Promise<LoginUserResponseDto> {
+    const { username, displayName, image } = req;
+
+    const userExists = await this.usersService.findByTwitterUsername(username);
+    if (userExists) {
+      const tokens = await this.getTokens(userExists.userId, userExists.username, userExists.role);
+      return {
+        user: userExists,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken
+      }
+    } else {
+      // Hash password
+      const password = randomString(10);
+      const hash = await this.hashData(password);
+      const newUser = await this.usersService.createUserWithTwitter({
+        username,
+        password: hash,
+        displayName,
+        image
       });
       const tokens = await this.getTokens(newUser.userId, newUser.username, newUser.role);
       return {

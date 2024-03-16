@@ -5,8 +5,9 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-
+import * as favicon from 'serve-favicon';
 import { AppModule } from './app.module';
+import * as path from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -32,6 +33,8 @@ async function bootstrap() {
 
   // HttpException custom
   app.useGlobalFilters(new HttpExceptionFilter(app.get(WINSTON_MODULE_NEST_PROVIDER)));
+
+  // app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
   // Start API 
   const configService = app.get(ConfigService);

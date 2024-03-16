@@ -64,3 +64,32 @@ export class CreateUserWithWalletDto extends CreateUserDto {
     @IsString()
     address: string;
 }
+
+export class CreateUserWithTwitterDto extends CreateUserDto {
+    @ApiProperty({
+        example: 'awesomeuser123',
+        description: 'The unique username of the user',
+        required: true
+    })
+    @IsNotEmpty()
+    @IsString()
+    username: string;
+
+    @ApiProperty({
+        example: 'awesomeuser123',
+        description: 'The unique username of the user',
+        required: true
+    })
+    @IsNotEmpty()
+    @IsString()
+    displayName: string;
+
+    @ApiProperty({
+        example: 'awesomeuser123',
+        description: 'The unique username of the user',
+        required: true
+    })
+    @IsNotEmpty()
+    @IsString()
+    image: string;
+}

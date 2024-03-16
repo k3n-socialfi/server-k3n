@@ -1,6 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 
 
 @Controller('health-check')
@@ -17,4 +18,9 @@ export class AppController {
 
     }
   }
+  // @Get('favicon.ico')
+  // getFavicon(@Res() res: Response) {
+  //   // console.log('res:', res)
+  //   return res.status(204).send();
+  // }
 }
