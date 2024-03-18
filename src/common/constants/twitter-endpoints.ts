@@ -7,7 +7,7 @@ export const TwitterEndpoints = {
     // USER LOOKUP
     USER_BY_ID: "https://api.twitter.com/2/users/:id",
     USERS_BY_ID: "https://api.twitter.com/2/users?ids=",
-    USER_BY_USERNAME: "https://api.twitter.com/2/users/by/username/:username",
+    USER_BY_USERNAME: "https://api.twitter.com/2/users/by/username/",
     USERS_BY_USERNAME: "https://api.twitter.com/2/users/by?usernames=",
 
     // FOLLOWS
