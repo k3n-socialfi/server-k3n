@@ -9,7 +9,7 @@ import { LoginUserResponseDto, UserResponseDto } from '../users/dto/response/use
 import { FailureResponseDto } from '@common/exceptions/failure-response.dto';
 import { LoginUserDto } from '../users/dto/request/login-user.dto';
 import { CreateUserDto } from '../users/dto/request/create-user.dto';
-import { LoginWalletDto } from './dto/login-wallet.dto';
+import { LoginSolanaDto } from './dto/login-wallet.dto';
 
 
 @Controller('auth')
@@ -47,7 +47,7 @@ export class AuthController {
   //   const refreshToken = req.headers['refreshToken'].toString();
   //   return this.authService.refreshTokens(refreshToken);
   // }
-  @Get('refresh')
+  @Get('refresh/:refresh_token')
   async refreshTokens(@Param('refresh_token') refresh_token: string) {
     // console.log('refresh_token:', refresh_token)
     // const refreshToken = req.headers['refreshToken'].toString();
@@ -58,18 +58,28 @@ export class AuthController {
     };
   }
 
-  @Post('login-wallet')
+  @Get('message-solana/:address')
+  async getMessageSolana(@Param('address') address: string) {
+    console.log('address:', address)
+    return {
+      code: 200,
+      message: "Get sign message successful",
+      data: await this.authService.getMessageSolana(address.toLowerCase())
+    };
+  }
+
+  @Post('login-solana')
   @ApiResponse({
     description: 'Respond',
     type: ResponseDto<UserResponseDto>
   })
   async loginWallet(
-    @Body() request: LoginWalletDto,
+    @Body() request: LoginSolanaDto,
   ) {
     return {
       code: 200,
-      message: "Sigin successful",
-      data: await this.authService.loginWallet(request)
+      message: "Login successful",
+      data: await this.authService.loginSolana(request)
     };
   }
 }

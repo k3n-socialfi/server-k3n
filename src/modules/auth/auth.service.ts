@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
@@ -12,9 +13,11 @@ import { JwtType } from '@common/constants/enum';
 import { LoginUserResponseDto } from '../users/dto/response/user-response.dto';
 import { LoginUserDto } from '../users/dto/request/login-user.dto';
 import { randomString } from 'src/utils/helper';
-import { LoginWalletDto } from './dto/login-wallet.dto';
-import { verifySignature } from 'src/utils/verify-signature';
+import { LoginSolanaDto } from './dto/login-wallet.dto';
+import { getMessageSolana, verifySignature } from 'src/utils/verify-signature/solana-signature';
 import { LoginWithTwitterDto } from './dto/login-twitter.dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AuthService {
@@ -22,11 +25,20 @@ export class AuthService {
     private usersService: UserService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) { }
 
-  async loginWallet(req: LoginWalletDto): Promise<LoginUserResponseDto> {
-    const { address, message, signature } = req;
-    const verified = verifySignature(message, signature, address);
+  async getMessageSolana(address: string) {
+    const msg = await getMessageSolana(address);
+    await this.cacheManager.set(`${address}`, msg);
+
+    return msg;
+  }
+
+  async loginSolana(req: LoginSolanaDto): Promise<LoginUserResponseDto> {
+    const { address, signature } = req;
+    const message = await this.cacheManager.get(`${address}`);
+    const verified = verifySignature(message.toString(), signature, address);
     if (!verified) throw new ForbiddenException('Access Denied');
     const userExists = await this.usersService.findByUserAddress(address);
     if (userExists) {

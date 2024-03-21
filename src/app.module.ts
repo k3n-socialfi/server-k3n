@@ -11,6 +11,7 @@ import { AppService } from './app.service';
 import { CoreModule } from './modules/core.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { JwtModule } from '@nestjs/jwt';
       load: [MyConfigService.getConfiguration],
       isGlobal: true
     }),
+    CacheModule.registerAsync(MyConfigService.getRedisConfig()),
     JwtModule.register(MyConfigService.getJwtConfig()),
     TypeOrmModule.forRoot(MyConfigService.getTypeOrmConfig()),
     WinstonModule.forRoot(MyConfigService.getWinstonConfig(LoggerType.APP)),

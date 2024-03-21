@@ -3,9 +3,10 @@ import { Mixin } from 'ts-mixer';
 import { LogConfig } from './log.config';
 import { TypeOrmConfig } from './mongodb.config';
 import { JwtConfig } from './auth.config';
+import { RedisConfig } from './redis.config';
 // import { RedisConfig } from './redis.config';
 
-export class MyConfigService extends Mixin(LogConfig, TypeOrmConfig, JwtConfig) {
+export class MyConfigService extends Mixin(LogConfig, TypeOrmConfig, JwtConfig, RedisConfig) {
   /**
    * @returns config
    */
