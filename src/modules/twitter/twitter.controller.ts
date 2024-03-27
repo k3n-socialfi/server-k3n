@@ -1,7 +1,9 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query, ValidationPipe } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { TwitterService } from './twitter.service';
 import { SwaggerTwitterUserResponseDto } from './dto/response/swagger-response.dto';
+import { IsOptional } from 'class-validator';
+import { RequestUserTweetQuery } from './dto/request/user-tweet.dto';
 
 @Controller('twitter')
 @ApiTags('Twitter')
@@ -43,6 +45,30 @@ export class TwitterController {
       code: 200,
       message: 'Get all user successful',
       data: await this.twitterService.findTwitterUsersFollowers(username)
+    };
+  }
+
+  @Get('user/tweets')
+  public async getUserTweets(@Query(new ValidationPipe({ transform: true })) query: RequestUserTweetQuery) {
+    return {
+      code: 200,
+      message: "Get user's tweets successful",
+      data: await this.twitterService.getUserTweets({
+        username: query.username,
+        userId: query.userId,
+        limit: query.limit,
+        includePinned: query.includePinned,
+        includeReplies: query.includeReplies
+      })
+    };
+  }
+
+  @Get('user/tweets/points/:username')
+  public async getUserTweetsPoints(@Param('username') username: string) {
+    return {
+      code: 200,
+      message: "Get user's tweets points successful",
+      data: await this.twitterService.getUserTweetPoints(username)
     };
   }
 }

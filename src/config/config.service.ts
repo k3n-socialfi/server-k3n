@@ -17,7 +17,11 @@ export class MyConfigService extends Mixin(LogConfig, TypeOrmConfig, JwtConfig, 
         access_secret: process.env.JWT_ACCESS_SECRET,
         refresh_secret: process.env.JWT_REFRESH_SECRET,
         accessExpiresIn: process.env.ACCESS_EXPIRES_TIME,
-        refreshExpiresIn: process.env.REFRESH_EXPIRES_TIME,
+        refreshExpiresIn: process.env.REFRESH_EXPIRES_TIME
+      },
+      rapidApi: {
+        'X-RapidAPI-Key': process.env.X_RAPIDAPI_KEY,
+        'X-RapidAPI-Host': process.env.X_RAPIDAPI_HOST
       }
       // redis: {
       //   host: process.env.REDIS_HOST || 'localhost',

@@ -6,6 +6,7 @@ import { HttpModule } from '@nestjs/axios';
 @Module({
   imports: [HttpModule],
   providers: [TwitterService],
-  controllers: [TwitterController]
+  controllers: [TwitterController],
+  exports: [TwitterService]
 })
-export class TwitterModule { }
+export class TwitterModule {}

@@ -17,7 +17,7 @@ import { ErrorsMap, ISystemError } from '@common/constants/respond-errors';
 @Catch()
 @Injectable()
 export class HttpExceptionFilter implements ExceptionFilter {
-  constructor(@Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger) { }
+  constructor(@Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger) {}
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const request = ctx.getRequest<Request>();

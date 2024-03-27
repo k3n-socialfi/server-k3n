@@ -31,5 +31,10 @@ export const RapidApiEndpoints = {
   // FOLLOWS
   USER_FOLLOWING: 'https://twitter154.p.rapidapi.com/user/following',
 
-  USER_FOLLOWERS: 'https://twitter154.p.rapidapi.com/user/followers'
+  USER_FOLLOWERS: 'https://twitter154.p.rapidapi.com/user/followers',
+
+  // TWEET
+
+  TWEET_DETAILS: 'https://twitter154.p.rapidapi.com/tweet/details',
+  USER_TWEETS: 'https://twitter154.p.rapidapi.com/user/tweets'
 };

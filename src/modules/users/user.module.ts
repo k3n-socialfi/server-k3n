@@ -4,11 +4,12 @@ import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { HttpModule } from '@nestjs/axios';
+import { TwitterModule } from '../twitter/twitter.module';
 
 @Module({
-    imports: [HttpModule, TypeOrmModule.forFeature([User])],
-    controllers: [UserController],
-    providers: [UserService],
-    exports: [UserService]
+  imports: [HttpModule, TypeOrmModule.forFeature([User]), TwitterModule],
+  controllers: [UserController],
+  providers: [UserService],
+  exports: [UserService]
 })
-export class UserModule { }
+export class UserModule {}

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Type } from 'class-transformer';
+import { Exclude, Transform, Type } from 'class-transformer';
 import { ArrayMinSize, IsArray, IsNotEmpty, IsString, IsNumber, ValidateNested, IsObject } from 'class-validator';
 import { Column, ObjectId } from 'typeorm';
 import { ResponseDto } from '@common/interceptors/success-response.dto';

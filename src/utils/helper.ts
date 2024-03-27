@@ -1,5 +1,5 @@
-import * as moment from "moment";
-
+import * as moment from 'moment';
+import ObjectId from 'bson-objectid';
 const SECONDS_IN_A_DAY = 60 * 60 * 24;
 /**
  * ==============================================================================
@@ -13,15 +13,14 @@ const SECONDS_IN_A_DAY = 60 * 60 * 24;
  *          capitalize('fooBar', true); // 'Foobar'
  */
 export const capitalize = ([first, ...rest]: string, lowerRest = false) =>
-    first.toUpperCase() +
-    (lowerRest ? rest.join('').toLowerCase() : rest.join(''));
+  first.toUpperCase() + (lowerRest ? rest.join('').toLowerCase() : rest.join(''));
 
 export function compareAddresses(add1: string, add2: string) {
-    return add1.length == add2.length && add1.toLowerCase() == add2.toLowerCase();
+  return add1.length == add2.length && add1.toLowerCase() == add2.toLowerCase();
 }
 
 export function getCurrentTimeInt(): number {
-    return +(moment().valueOf() / 1000).toFixed();
+  return +(moment().valueOf() / 1000).toFixed();
 }
 
 /**
@@ -30,10 +29,10 @@ export function getCurrentTimeInt(): number {
  *          capitalize('fooBar', true); // 'Foobar'
  */
 export const isNumberPhoneVN = (phone: string) => {
-    if (!phone) return false;
-    if (phone.length != 10) return false;
-    const regex = /((03|04|05|07|08|09)+([0-9]{8})\b)/g;
-    return regex.test(phone);
+  if (!phone) return false;
+  if (phone.length != 10) return false;
+  const regex = /((03|04|05|07|08|09)+([0-9]{8})\b)/g;
+  return regex.test(phone);
 };
 
 /**
@@ -57,8 +56,7 @@ export const isNumberPhoneVN = (phone: string) => {
  * Capitalizes the first letter of every word in a string.
  * Example: capitalizeEveryWord('hello world!'); // 'Hello World!'
  */
-export const capitalizeEveryWord = (str: string) =>
-    str.replace(/\b[a-z]/g, (char) => char.toUpperCase());
+export const capitalizeEveryWord = (str: string) => str.replace(/\b[a-z]/g, (char) => char.toUpperCase());
 
 /**
  * Converts a string to camelcase.
@@ -68,15 +66,13 @@ export const capitalizeEveryWord = (str: string) =>
  *          toCamelCase('some-mixed_string with spaces_underscores-and-hyphens'); // 'someMixedStringWithSpacesUnderscoresAndHyphens
  */
 export const toCamelCase = (str: string) => {
-    let s =
-        str &&
-        str
-            .match(
-                /[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+/g,
-            )
-            .map((x) => x.slice(0, 1).toUpperCase() + x.slice(1).toLowerCase())
-            .join('');
-    return s.slice(0, 1).toLowerCase() + s.slice(1);
+  let s =
+    str &&
+    str
+      .match(/[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+/g)
+      .map((x) => x.slice(0, 1).toUpperCase() + x.slice(1).toLowerCase())
+      .join('');
+  return s.slice(0, 1).toLowerCase() + s.slice(1);
 };
 
 /**
@@ -85,15 +81,14 @@ export const toCamelCase = (str: string) => {
  *          mask(1234567890, 3);        // '*******890'
  *          mask(1234567890, -4, '$');  // '$$$$567890'
  */
-export const mask = (cc: string, num = 4, mask = '*') =>
-    `${cc}`.slice(-num).padStart(`${cc}`.length, mask);
+export const mask = (cc: string, num = 4, mask = '*') => `${cc}`.slice(-num).padStart(`${cc}`.length, mask);
 
 /**
  * Format number to VND.
  * Example: formatVND(10000);           // '10.000'
  */
 export function formatVND(num: number) {
-    return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+  return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
 }
 
 /**
@@ -101,8 +96,7 @@ export function formatVND(num: number) {
  * Example: randomString(6);           // 'bmakcn'
  * Example: randomString(7);           // 'kjskcnd'
  */
-export const randomString = (length: number) =>
-    Math.random().toString(36).substring(0, length);
+export const randomString = (length: number) => Math.random().toString(36).substring(0, length);
 
 /**
  * ==============================================================================
@@ -116,41 +110,40 @@ export const randomString = (length: number) =>
  *          isEmptyObject({a: 1})  // false
  */
 export function isEmptyObject(object: Object): boolean {
-    if (typeof object !== 'object') return false;
-    if (!object) return false;
-    return !!Object.keys(object).length;
+  if (typeof object !== 'object') return false;
+  if (!object) return false;
+  return !!Object.keys(object).length;
 }
 
 export function sortObject(o: any) {
-    const sorted = {};
-    let a = [];
+  const sorted = {};
+  let a = [];
 
-    for (let key in o) {
-        if (o.hasOwnProperty(key)) {
-            a.push(key);
-        }
+  for (let key in o) {
+    if (o.hasOwnProperty(key)) {
+      a.push(key);
     }
+  }
 
-    a.sort();
+  a.sort();
 
-    for (let key = 0; key < a.length; key++) {
-        sorted[a[key]] = o[a[key]];
-    }
+  for (let key = 0; key < a.length; key++) {
+    sorted[a[key]] = o[a[key]];
+  }
 
-    return sorted;
+  return sorted;
 }
 
 export function paginate(array: any[], limit: number = 0, page: number = 1) {
-    if (!limit) return array;
-    return array.slice((page - 1) * limit, page * limit);
+  if (!limit) return array;
+  return array.slice((page - 1) * limit, page * limit);
 }
 
 /**
  * Picks the key-value pairs corresponding to the given keys from an object.
  * Example: pick({ a: 1, b: '2', c: 3 }, ['a', 'c']); // { 'a': 1, 'c': 3 }
  */
-const pick = (obj: any, arr: string[]) =>
-    arr.reduce((acc, curr) => (curr in obj && (acc[curr] = obj[curr]), acc), {});
+const pick = (obj: any, arr: string[]) => arr.reduce((acc, curr) => (curr in obj && (acc[curr] = obj[curr]), acc), {});
 
 /**
  * ==============================================================================
@@ -158,44 +151,44 @@ const pick = (obj: any, arr: string[]) =>
  * ==============================================================================
  */
 export function getCurrentDateDDMMYY(): string {
-    return moment().format('DDMMYY');
+  return moment().format('DDMMYY');
 }
 
 export function getCurrentDateDD_MM_YYYY(format: string = '/'): string {
-    return moment().format(`DD${format}MM${format}YYYY`);
+  return moment().format(`DD${format}MM${format}YYYY`);
 }
 
 export function getCurrentInSeconds(): number {
-    return +(moment().valueOf() / 1000).toFixed();
+  return +(moment().valueOf() / 1000).toFixed();
 }
 
 export function getMonthInterval(date: Date) {
-    let start = moment(date).startOf('months');
-    let end = start.clone().add(1, 'months');
-    return {
-        start: start.valueOf() / 1000,
-        end: end.valueOf() / 1000,
-    };
+  let start = moment(date).startOf('months');
+  let end = start.clone().add(1, 'months');
+  return {
+    start: start.valueOf() / 1000,
+    end: end.valueOf() / 1000
+  };
 }
 
 export function convertFullDateToInt(date: Date): {
-    start: number;
-    end: number;
+  start: number;
+  end: number;
 } {
-    let time = +(date.getTime() / 1000).toFixed();
-    let start = Math.round(time / SECONDS_IN_A_DAY) * SECONDS_IN_A_DAY;
-    return {
-        start,
-        end: start + SECONDS_IN_A_DAY,
-    };
+  let time = +(date.getTime() / 1000).toFixed();
+  let start = Math.round(time / SECONDS_IN_A_DAY) * SECONDS_IN_A_DAY;
+  return {
+    start,
+    end: start + SECONDS_IN_A_DAY
+  };
 }
 
 export function convertIntToDDMMYY(int: number): string {
-    return moment(int * 1000).format('DD/MM/YYYY');
+  return moment(int * 1000).format('DD/MM/YYYY');
 }
 
 export function convertIntToMMYY(int: number): string {
-    return moment(int * 1000).format('MM/YYYY');
+  return moment(int * 1000).format('MM/YYYY');
 }
 
 /**
@@ -203,126 +196,126 @@ export function convertIntToMMYY(int: number): string {
  * @param int timestamp
  */
 export function convertIntToddddDDMMYY(int: number): string {
-    return moment(int * 1000)
-        .locale('vi')
-        .format('dddd, DD/MM/YYYY');
+  return moment(int * 1000)
+    .locale('vi')
+    .format('dddd, DD/MM/YYYY');
 }
 
 export function convertDateToInt(date: Date): number {
-    let time = +(date.getTime() / 1000).toFixed();
-    return (time * SECONDS_IN_A_DAY) / SECONDS_IN_A_DAY;
+  let time = +(date.getTime() / 1000).toFixed();
+  return (time * SECONDS_IN_A_DAY) / SECONDS_IN_A_DAY;
 }
 
 export function getMomentByDate(date: Date = new Date()): moment.Moment {
-    return moment(date);
+  return moment(date);
 }
 
 export function getMomentToday(): moment.Moment {
-    return moment().startOf('day');
+  return moment().startOf('day');
 }
 
 export function getIntervalOfTimestamp(second: number) {
-    let start = moment(second * 1000).startOf('day');
-    let end = start.clone().add(1, 'days');
-    return {
-        start: start.valueOf() / 1000,
-        end: end.valueOf() / 1000,
-    };
+  let start = moment(second * 1000).startOf('day');
+  let end = start.clone().add(1, 'days');
+  return {
+    start: start.valueOf() / 1000,
+    end: end.valueOf() / 1000
+  };
 }
 
 export function getTodayInterval(): { start: number; end: number } {
-    let start = moment().startOf('day');
-    let end = start.clone().add(1, 'days');
-    return {
-        start: start.valueOf() / 1000,
-        end: end.valueOf() / 1000,
-    };
+  let start = moment().startOf('day');
+  let end = start.clone().add(1, 'days');
+  return {
+    start: start.valueOf() / 1000,
+    end: end.valueOf() / 1000
+  };
 }
 
 export function getYesterdayInterval(): { start: number; end: number } {
-    let start = moment().subtract(1, 'days').startOf('day');
-    let end = start.clone().add(1, 'days');
-    return {
-        start: start.valueOf() / 1000,
-        end: end.valueOf() / 1000,
-    };
+  let start = moment().subtract(1, 'days').startOf('day');
+  let end = start.clone().add(1, 'days');
+  return {
+    start: start.valueOf() / 1000,
+    end: end.valueOf() / 1000
+  };
 }
 
 export function getThisHourInterval(): { start: number; end: number } {
-    let start = moment().startOf('hour');
-    let end = start.clone().add(1, 'hour');
-    return {
-        start: start.valueOf() / 1000,
-        end: end.valueOf() / 1000,
-    };
+  let start = moment().startOf('hour');
+  let end = start.clone().add(1, 'hour');
+  return {
+    start: start.valueOf() / 1000,
+    end: end.valueOf() / 1000
+  };
 }
 
 export function getLastInterval(): { start: number; end: number } {
-    let start = moment().startOf('day');
-    let end = start.clone().add(1, 'days');
-    return {
-        start: start.valueOf() / 1000,
-        end: end.valueOf() / 1000,
-    };
+  let start = moment().startOf('day');
+  let end = start.clone().add(1, 'days');
+  return {
+    start: start.valueOf() / 1000,
+    end: end.valueOf() / 1000
+  };
 }
 
 export function getThisWeekInterval(): { start: number; end: number } {
-    let start = moment().startOf('isoWeeks');
-    let end = start.clone().add(1, 'weeks');
-    return {
-        start: start.valueOf() / 1000,
-        end: end.valueOf() / 1000,
-    };
+  let start = moment().startOf('isoWeeks');
+  let end = start.clone().add(1, 'weeks');
+  return {
+    start: start.valueOf() / 1000,
+    end: end.valueOf() / 1000
+  };
 }
 
 export function getDateInterval(date: any): { start: number; end: number } {
-    let start = moment(date).startOf('day');
-    let end = start.clone().add(1, 'days');
-    return {
-        start: start.valueOf() / 1000,
-        end: end.valueOf() / 1000,
-    };
+  let start = moment(date).startOf('day');
+  let end = start.clone().add(1, 'days');
+  return {
+    start: start.valueOf() / 1000,
+    end: end.valueOf() / 1000
+  };
 }
 
 export function getDateIntInterval(date: any): { start: number; end: number } {
-    let start = moment(date * 1000).startOf('day');
-    let end = start.clone().add(1, 'days');
-    return {
-        start: start.valueOf() / 1000,
-        end: end.valueOf() / 1000,
-    };
+  let start = moment(date * 1000).startOf('day');
+  let end = start.clone().add(1, 'days');
+  return {
+    start: start.valueOf() / 1000,
+    end: end.valueOf() / 1000
+  };
 }
 
 export function getThisMonthInterval(): { start: number; end: number } {
-    let start = moment().startOf('months');
-    let end = start.clone().add(1, 'months');
-    return {
-        start: start.valueOf() / 1000,
-        end: end.valueOf() / 1000,
-    };
+  let start = moment().startOf('months');
+  let end = start.clone().add(1, 'months');
+  return {
+    start: start.valueOf() / 1000,
+    end: end.valueOf() / 1000
+  };
 }
 
 export function getMomentBySecond(second: number): moment.Moment {
-    return moment(second * 1000);
+  return moment(second * 1000);
 }
 
 export function getMomentByMiliSecond(miliSecond: number): moment.Moment {
-    return moment(miliSecond);
+  return moment(miliSecond);
 }
 
 export function getWeekOfMonth(date: moment.Moment) {
-    return date.isoWeek() - moment(date).startOf('month').isoWeek() + 1;
+  return date.isoWeek() - moment(date).startOf('month').isoWeek() + 1;
 }
 
 export function getFromToDate(from: Date = null, to: Date = null) {
-    let { start, end } = getThisMonthInterval();
-    if (from && to) {
-        const dateFrom = convertFullDateToInt(from);
-        start = dateFrom.start;
-        const dateTo = convertFullDateToInt(to);
-        end = dateTo.end;
-    }
-    return { start, end };
+  let { start, end } = getThisMonthInterval();
+  if (from && to) {
+    const dateFrom = convertFullDateToInt(from);
+    start = dateFrom.start;
+    const dateTo = convertFullDateToInt(to);
+    end = dateTo.end;
+  }
+  return { start, end };
 }
 
 /**
@@ -336,13 +329,13 @@ export function getFromToDate(from: Date = null, to: Date = null) {
  * Example: getRandomIntInclusive(0, 10);                              // 9
  */
 export function getRandomIntInclusive(min: number, max: number) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
 }
 
 export function roundToThousand(value: number) {
-    return (value / 1000) * 1000;
+  return (value / 1000) * 1000;
 }
 
 /**
@@ -361,7 +354,7 @@ export function roundToThousand(value: number) {
  * Example: leftPad(10, 6);                              // 000010
  */
 export function leftPad(number: number, maxLength: number) {
-    return `${number}`.padStart(maxLength, '0');
+  return `${number}`.padStart(maxLength, '0');
 }
 
 /**
@@ -369,30 +362,29 @@ export function leftPad(number: number, maxLength: number) {
  * Example: logSection('production mode');
  */
 export function logSection(text: string) {
-    text = text.toUpperCase();
-    console.log(
-        '..........................................................................................',
-    );
-    console.log(
-        `......................................${text}......................................`,
-    );
-    console.log(
-        '..........................................................................................',
-    );
+  text = text.toUpperCase();
+  console.log('..........................................................................................');
+  console.log(`......................................${text}......................................`);
+  console.log('..........................................................................................');
 }
 
 export function sleep(ms: number) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 export function chunk(array: any[], size: number) {
-    const chunked_arr = [];
-    let index = 0;
-    while (index < array.length) {
-        chunked_arr.push(array.slice(index, size + index));
-        index += size;
-    }
-    return chunked_arr;
+  const chunked_arr = [];
+  let index = 0;
+  while (index < array.length) {
+    chunked_arr.push(array.slice(index, size + index));
+    index += size;
+  }
+  return chunked_arr;
+}
+
+export function generateId(): string {
+  const id = new ObjectId();
+  return id.toHexString();
 }

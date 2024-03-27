@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -25,8 +20,8 @@ export class AuthService {
     private usersService: UserService,
     private jwtService: JwtService,
     private configService: ConfigService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
-  ) { }
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
+  ) {}
 
   async getMessageSolana(address: string) {
     const msg = await getMessageSolana(address);
@@ -47,7 +42,7 @@ export class AuthService {
         user: userExists,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken
-      }
+      };
     } else {
       // Hash password
       const password = randomString(10);
@@ -56,16 +51,15 @@ export class AuthService {
       const newUser = await this.usersService.createUserWithWallet({
         username,
         address,
-        password: hash,
+        password: hash
       });
       const tokens = await this.getTokens(newUser.userId, newUser.username, newUser.role);
       return {
         user: newUser,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken
-      }
+      };
     }
-
   }
 
   async loginWithTwitter(req: LoginWithTwitterDto): Promise<LoginUserResponseDto> {
@@ -78,7 +72,7 @@ export class AuthService {
         user: userExists,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken
-      }
+      };
     } else {
       // Hash password
       const password = randomString(10);
@@ -94,16 +88,13 @@ export class AuthService {
         user: newUser,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken
-      }
+      };
     }
-
   }
 
   async signUp(req: CreateUserDto): Promise<LoginUserResponseDto> {
     // Check if user exists
-    const userExists = await this.usersService.findInternalByUsername(
-      req.username
-    );
+    const userExists = await this.usersService.findInternalByUsername(req.username);
     if (userExists) {
       throw new BadRequestException('User already exists');
     }
@@ -112,14 +103,14 @@ export class AuthService {
     const hash = await this.hashData(req.password);
     const newUser = await this.usersService.createUser({
       ...req,
-      password: hash,
+      password: hash
     });
     const tokens = await this.getTokens(newUser.userId, newUser.username, newUser.role);
     return {
       user: newUser,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken
-    }
+    };
   }
 
   async signIn(data: LoginUserDto): Promise<LoginUserResponseDto> {
@@ -127,19 +118,19 @@ export class AuthService {
     const user = await this.usersService.findInternalByUsername(data.username);
     if (!user) throw new BadRequestException('User does not exist');
     const passwordMatches = await bcrypt.compare(data.password, user.password);
-    if (!passwordMatches)
-      throw new BadRequestException('Password is incorrect');
+    if (!passwordMatches) throw new BadRequestException('Password is incorrect');
     const tokens = await this.getTokens(user.userId, user.username, user.role);
+    const { password, _id, ...userData } = user;
     return {
-      user,
+      user: userData,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken
-    }
+    };
   }
 
   async refreshTokens(refreshToken: string) {
-    const userId = this.decodeJwt(refreshToken, JwtType.Refresh);
-    const user = await this.usersService.findByUserId(userId);
+    const username = this.decodeJwt(refreshToken, JwtType.Refresh);
+    const user = await this.usersService.findByUserName(username);
     const tokens = await this.getTokens(user.userId, user.username, user.role);
     return tokens;
   }
@@ -160,8 +151,8 @@ export class AuthService {
         },
         {
           secret: configJWT.access_secret,
-          expiresIn: configJWT.accessExpiresIn,
-        },
+          expiresIn: configJWT.accessExpiresIn
+        }
       ),
       this.jwtService.signAsync(
         {
@@ -171,19 +162,19 @@ export class AuthService {
         },
         {
           secret: configJWT.refresh_secret,
-          expiresIn: configJWT.refreshExpiresIn,
-        },
-      ),
+          expiresIn: configJWT.refreshExpiresIn
+        }
+      )
     ]);
 
     return {
       accessToken,
-      refreshToken,
+      refreshToken
     };
   }
   decodeJwt(jwt: string, tokenType: JwtType) {
     const configJWT = this.configService.get('jwt');
-    let jwtSecret: string
+    let jwtSecret: string;
 
     if (tokenType === JwtType.Access) {
       jwtSecret = configJWT.access_secret;
@@ -195,8 +186,8 @@ export class AuthService {
 
     try {
       const decodedToken = this.jwtService.decode(jwt);
-      if (decodedToken && decodedToken.hasOwnProperty('sub')) {
-        return decodedToken.userId;
+      if (decodedToken && decodedToken.hasOwnProperty('username')) {
+        return decodedToken.username;
       } else {
         throw new ForbiddenException('Failed to decode or validate token.');
       }

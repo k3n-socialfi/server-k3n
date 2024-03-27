@@ -10,33 +10,39 @@ import { FailureResponseDto } from '@common/exceptions/failure-response.dto';
 import { LoginUserDto } from '../users/dto/request/login-user.dto';
 import { CreateUserDto } from '../users/dto/request/create-user.dto';
 import { LoginSolanaDto } from './dto/login-wallet.dto';
-
+import { SwaggerUserResponseDto } from '../users/dto/response/swagger-response.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
   @Post('signup')
+  @ApiResponse({
+    description: 'Sigup successful',
+    type: SwaggerUserResponseDto
+  })
   async signup(@Body() createUserDto: CreateUserDto) {
     return {
       code: 201,
-      message: "Sigup successful",
+      message: 'Sigup successful',
       data: await this.authService.signUp(createUserDto)
     };
   }
 
   @Post('signin')
   @ApiResponse({
+    description: 'Signin successful',
+    type: SwaggerUserResponseDto
+  })
+  @ApiResponse({
     description: 'Respond',
     type: ResponseDto<UserResponseDto>
   })
-  async signIn(
-    @Body() request: LoginUserDto,
-  ) {
+  async signIn(@Body() request: LoginUserDto) {
     return {
       code: 200,
-      message: "Sigin successful",
+      message: 'Sigin successful',
       data: await this.authService.signIn(request)
     };
   }
@@ -53,17 +59,17 @@ export class AuthController {
     // const refreshToken = req.headers['refreshToken'].toString();
     return {
       code: 200,
-      message: "Get refreshTokens successful",
+      message: 'Get refreshTokens successful',
       data: await this.authService.refreshTokens(refresh_token)
     };
   }
 
   @Get('message-solana/:address')
   async getMessageSolana(@Param('address') address: string) {
-    console.log('address:', address)
+    console.log('address:', address);
     return {
       code: 200,
-      message: "Get sign message successful",
+      message: 'Get sign message successful',
       data: await this.authService.getMessageSolana(address.toLowerCase())
     };
   }
@@ -73,12 +79,10 @@ export class AuthController {
     description: 'Respond',
     type: ResponseDto<UserResponseDto>
   })
-  async loginWallet(
-    @Body() request: LoginSolanaDto,
-  ) {
+  async loginWallet(@Body() request: LoginSolanaDto) {
     return {
       code: 200,
-      message: "Login successful",
+      message: 'Login successful',
       data: await this.authService.loginSolana(request)
     };
   }
