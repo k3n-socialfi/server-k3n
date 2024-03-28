@@ -43,7 +43,7 @@ export class UserService {
         where: whereConditions,
         skip: skip > 0 ? skip : 0,
         take: query.limit,
-        order: { createdAt: 'DESC' }
+        order: { createdAt: 'DESC', totalPoints: 'DESC' }
       }),
       this.countDocuments()
     ]);
@@ -84,6 +84,28 @@ export class UserService {
     }
     const { password, _id, ...userData } = user;
     return userData;
+  }
+
+  async findProfileByUserId(userId: string) {
+    const user = await this.userRep.findOne({
+      where: {
+        userId
+      }
+    });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found.`);
+    }
+    const { password, _id, ...userData } = user;
+
+    let userTweet = [];
+    const usernameTwitter = user.socialProfiles.find((social) => social.social === 'twitter');
+    if (usernameTwitter) {
+      userTweet = await this.twitterService.getUserTweets({ username: usernameTwitter.username });
+    }
+    return {
+      ...userData,
+      posts: userTweet
+    };
   }
 
   async findByUserName(username: string): Promise<UserResponseDto> {

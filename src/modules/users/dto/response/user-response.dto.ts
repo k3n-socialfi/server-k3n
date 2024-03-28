@@ -133,6 +133,12 @@ export abstract class UserResponseDto {
   royaltyPoints: number;
 
   @ApiProperty({
+    example: 300,
+    description: 'Total Points of user'
+  })
+  totalPoints: number;
+
+  @ApiProperty({
     example: 'https://example.com/profile_picture.jpg',
     description: "URL to the user's avatar image"
   })

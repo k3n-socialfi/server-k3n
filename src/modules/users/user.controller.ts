@@ -83,6 +83,19 @@ export class UserController {
     };
   }
 
+  @Get('profile/:userId')
+  @ApiResponse({
+    description: 'Get profile user by id response',
+    type: SwaggerUserResponseDto
+  })
+  public async getProfileUserById(@Param('userId') userId: string) {
+    return {
+      code: 200,
+      message: 'Get user by id successful',
+      data: await this.userService.findProfileByUserId(userId)
+    };
+  }
+
   // @Put('update')
   // @ApiResponse({
   //     description: 'Update user response',

@@ -63,7 +63,7 @@ export class TwitterController {
     };
   }
 
-  @Get('user/tweets/points/:username')
+  @Get('points/:username')
   public async getUserTweetsPoints(@Param('username') username: string) {
     return {
       code: 200,

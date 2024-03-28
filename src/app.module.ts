@@ -12,6 +12,8 @@ import { CoreModule } from './modules/core.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { CacheModule } from '@nestjs/cache-manager';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { SnakeToCamelInterceptor } from '@common/interceptors/snake-to-camel.interceptor';
 
 @Module({
   imports: [
@@ -27,10 +29,15 @@ import { CacheModule } from '@nestjs/cache-manager';
     WinstonModule.forRoot(MyConfigService.getWinstonConfig(LoggerType.APP)),
     CoreModule,
     TerminusModule,
-    HttpModule,
-
+    HttpModule
   ],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: SnakeToCamelInterceptor
+    }
+  ]
 })
-export class AppModule { }
+export class AppModule {}
