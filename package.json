@@ -58,7 +58,8 @@
     "ts-mixer": "^6.0.4",
     "tweetnacl": "^1.0.3",
     "typeorm": "^0.3.20",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "wrap-ansi": "^9.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
