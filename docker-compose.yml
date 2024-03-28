@@ -1,5 +1,14 @@
 version: '3.8'
 services:
+  k3n-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: server
+    ports:
+      - '3333:3333'
+    volumes:
+      - ./src:/app/src
   cache:
     container_name: cache
     image: "redis:latest"

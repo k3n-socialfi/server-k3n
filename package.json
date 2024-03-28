@@ -36,6 +36,7 @@
     "@solana/wallet-standard-util": "^1.1.1",
     "@solana/web3.js": "^1.90.1",
     "@superfaceai/passport-twitter-oauth2": "^1.2.4",
+    "axios": "^1.6.8",
     "bcrypt": "^5.1.1",
     "bignumber.js": "^9.1.2",
     "bson-objectid": "^2.0.4",
