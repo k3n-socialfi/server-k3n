@@ -86,14 +86,14 @@ export class UserService {
     return userData;
   }
 
-  async findProfileByUserId(userId: string) {
+  async findProfileByUsername(username: string) {
     const user = await this.userRep.findOne({
       where: {
-        userId
+        username
       }
     });
     if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found.`);
+      throw new NotFoundException(`User with username ${username} not found.`);
     }
     const { password, _id, ...userData } = user;
 

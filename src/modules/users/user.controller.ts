@@ -83,16 +83,31 @@ export class UserController {
     };
   }
 
-  @Get('profile/:userId')
+  @Get('profile/:username')
   @ApiResponse({
-    description: 'Get profile user by id response',
+    description: 'Get profile user by username response',
     type: SwaggerUserResponseDto
   })
-  public async getProfileUserById(@Param('userId') userId: string) {
+  public async getProfileUserById(@Param('username') username: string) {
     return {
       code: 200,
-      message: 'Get user by id successful',
-      data: await this.userService.findProfileByUserId(userId)
+      message: 'Get user by username successful',
+      data: await this.userService.findProfileByUsername(username)
+    };
+  }
+
+  @Get('my/profile')
+  @ApiResponse({
+    description: 'Get my profile response',
+    type: SwaggerUserResponseDto
+  })
+  @UseGuards(AccessTokenGuard)
+  public async getMyProfile(@Req() req: Request) {
+    const userObject = JSON.parse(JSON.stringify(req.user));
+    return {
+      code: 200,
+      message: 'Get my profile successful',
+      data: await this.userService.findProfileByUsername(userObject.username)
     };
   }
 
