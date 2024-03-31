@@ -1,4 +1,11 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -25,14 +32,15 @@ export class AuthService {
 
   async getMessageSolana(address: string) {
     const msg = await getMessageSolana(address);
-    await this.cacheManager.set(`${address}`, msg);
+    await this.cacheManager.set(`${address.toLowerCase()}`, msg);
 
     return msg;
   }
 
   async loginSolana(req: LoginSolanaDto): Promise<LoginUserResponseDto> {
     const { address, signature } = req;
-    const message = await this.cacheManager.get(`${address}`);
+    const message = await this.cacheManager.get(`${address.toLowerCase()}`);
+    if (!message) throw new NotFoundException('Sign message not found!. Please try again');
     const verified = verifySignature(message.toString(), signature, address);
     if (!verified) throw new ForbiddenException('Access Denied');
     const userExists = await this.usersService.findByUserAddress(address);
