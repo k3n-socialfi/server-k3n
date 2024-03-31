@@ -40,6 +40,7 @@ export class AuthService {
   async loginSolana(req: LoginSolanaDto): Promise<LoginUserResponseDto> {
     const { address, signature } = req;
     const message = await this.cacheManager.get(`${address.toLowerCase()}`);
+    console.log('message:', message);
     if (!message) throw new NotFoundException('Sign message not found!. Please try again');
     const verified = verifySignature(message.toString(), signature, address);
     if (!verified) throw new ForbiddenException('Access Denied');
