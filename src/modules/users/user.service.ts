@@ -183,7 +183,9 @@ export class UserService {
     const wallet = new BlockchainWallet();
     wallet.chainId = 1;
     wallet.address = address.toLowerCase();
+    const userId = generateId();
     const userCreated = {
+      userId,
       username,
       password,
       role: Role.User,
@@ -201,7 +203,9 @@ export class UserService {
     const social = new SocialNetwork();
     social.social = 'twitter';
     social.username = username.toLowerCase();
+    const userId = generateId();
     const userCreated = {
+      userId,
       username: username.toLowerCase(),
       avatar: image,
       fullName: displayName,

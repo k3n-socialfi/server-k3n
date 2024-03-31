@@ -43,8 +43,10 @@ export class AuthService {
     console.log('message:', message);
     if (!message) throw new NotFoundException('Sign message not found!. Please try again');
     const verified = verifySignature(message.toString(), signature, address);
+    console.log('verified:', verified);
     // if (!verified) throw new ForbiddenException('Access Denied');
     const userExists = await this.usersService.findByUserAddress(address);
+    console.log('userExists:', userExists);
     if (userExists) {
       const tokens = await this.getTokens(userExists.userId, userExists.username, userExists.role);
       return {
