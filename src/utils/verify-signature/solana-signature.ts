@@ -32,14 +32,17 @@ export function verifySignature(message: string, signature: string, address: str
   try {
     const nowMs = Date.now();
     const parse = JSON.parse(message);
+    console.log('parse:', parse);
     const expiredTime = new Date(parse.expirationTime);
+    console.log('expiredTime:', expiredTime.getTime());
+    console.log('nowMs > expiredTime.getTime():', nowMs - expiredTime.getTime());
     if (nowMs > expiredTime.getTime()) {
       return false;
     }
 
     const publicKey = new PublicKey(address).toBytes();
     const signatureArray = stringToUint8Array(signature);
-    const verified = nacl.sign.detached.verify(new TextEncoder().encode(message), signatureArray, publicKey);
+    const verified = nacl.sign.detached.verify(new TextEncoder().encode(parse), signatureArray, publicKey);
     return verified;
   } catch (err) {
     throw new BadGatewayException('Verify failed');
