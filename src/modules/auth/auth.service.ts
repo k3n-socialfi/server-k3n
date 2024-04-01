@@ -14,9 +14,9 @@ import { CreateUserDto } from '../users/dto/request/create-user.dto';
 import { JwtType } from '@common/constants/enum';
 import { LoginUserResponseDto } from '../users/dto/response/user-response.dto';
 import { LoginUserDto } from '../users/dto/request/login-user.dto';
-import { randomString } from 'src/utils/helper';
+import { getRandomUsernameWithNumber, randomString } from 'src/utils/helper';
 import { LoginSolanaDto } from './dto/login-wallet.dto';
-import { getMessageSolana, verifySignature } from 'src/utils/verify-signature/solana-signature';
+import { getMessageSolana, validateSolanaAddress, verifySignature } from 'src/utils/verify-signature/solana-signature';
 import { LoginWithTwitterDto } from './dto/login-twitter.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -31,8 +31,11 @@ export class AuthService {
   ) {}
 
   async getMessageSolana(address: string) {
+    // const isAddress = await validateSolanaAddress(address.toLowerCase());
+    // console.log('isAddress:', isAddress);
+    // if (!isAddress) throw new BadRequestException('Not the Solana wallet address. Please try again');
     const msg = await getMessageSolana(address);
-    await this.cacheManager.set(`${address.toLowerCase()}`, msg);
+    await this.cacheManager.set(`${address.toLowerCase()}`, msg, 15 * 60);
 
     return msg;
   }
@@ -40,13 +43,10 @@ export class AuthService {
   async loginSolana(req: LoginSolanaDto): Promise<LoginUserResponseDto> {
     const { address, signature } = req;
     const message = await this.cacheManager.get(`${address.toLowerCase()}`);
-    console.log('message:', message);
     if (!message) throw new NotFoundException('Sign message not found!. Please try again');
     const verified = verifySignature(message.toString(), signature, address);
-    console.log('verified:', verified);
-    // if (!verified) throw new ForbiddenException('Access Denied');
+    if (!verified) throw new ForbiddenException('Access Denied');
     const userExists = await this.usersService.findByUserAddress(address);
-    console.log('userExists:', userExists);
     if (userExists) {
       const tokens = await this.getTokens(userExists.userId, userExists.username, userExists.role);
       return {
@@ -57,7 +57,7 @@ export class AuthService {
     } else {
       // Hash password
       const password = randomString(10);
-      const username = randomString(8);
+      const username = getRandomUsernameWithNumber();
       const hash = await this.hashData(password);
       const newUser = await this.usersService.createUserWithWallet({
         username,
@@ -85,11 +85,14 @@ export class AuthService {
         refreshToken: tokens.refreshToken
       };
     } else {
+      const userWithUsername = this.usersService.findByUserName(username);
+      let newUsername = username;
+      if (userWithUsername) newUsername = getRandomUsernameWithNumber();
       // Hash password
       const password = randomString(10);
       const hash = await this.hashData(password);
       const newUser = await this.usersService.createUserWithTwitter({
-        username,
+        username: newUsername,
         password: hash,
         displayName,
         image

@@ -98,6 +98,16 @@ export function formatVND(num: number) {
  */
 export const randomString = (length: number) => Math.random().toString(36).substring(0, length);
 
+export const getRandomUsernameWithNumber = () => {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let randomString = '';
+  for (let i = 0; i < 15; i++) {
+    const randomIndex = Math.floor(Math.random() * chars.length);
+    randomString += chars[randomIndex];
+  }
+  return 'user' + randomString;
+};
+
 /**
  * ==============================================================================
  * ====================================OBJECT====================================

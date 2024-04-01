@@ -124,7 +124,9 @@ export class UserService {
   async findByUserAddress(address: string): Promise<UserResponseDto> {
     try {
       const users = await this.userRep.find({});
-      const userWithAddress = users?.find((user) => user.wallets?.some((wallet) => wallet.address === address));
+      const userWithAddress = users?.find((user) =>
+        user.wallets?.find((wallet) => wallet.address.toLowerCase() === address.toLowerCase())
+      );
       return userWithAddress;
     } catch (err) {
       console.log('err:', err);
