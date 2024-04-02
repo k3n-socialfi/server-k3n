@@ -18,6 +18,9 @@ export abstract class UserResponseDto {
   @IsString()
   userId: string;
 
+  @ApiProperty({})
+  twitterInfo?: any;
+
   @ApiProperty({
     example: 'awesomeuser123',
     description: 'The unique username of the user',
@@ -120,29 +123,29 @@ export abstract class UserResponseDto {
   })
   socialProfiles?: SocialNetwork[];
 
-  @ApiProperty({
-    example: 100,
-    description: 'Twitter Points of user'
-  })
-  twitterPoints: number;
+  // @ApiProperty({
+  //   example: 100,
+  //   description: 'Twitter Points of user'
+  // })
+  // twitterPoints: number;
 
-  @ApiProperty({
-    example: 200,
-    description: 'Royalty Points of user'
-  })
-  royaltyPoints: number;
+  // @ApiProperty({
+  //   example: 200,
+  //   description: 'Royalty Points of user'
+  // })
+  // royaltyPoints: number;
 
-  @ApiProperty({
-    example: 300,
-    description: 'Total Points of user'
-  })
-  totalPoints: number;
+  // @ApiProperty({
+  //   example: 300,
+  //   description: 'Total Points of user'
+  // })
+  // totalPoints: number;
 
-  @ApiProperty({
-    example: 'https://example.com/profile_picture.jpg',
-    description: "URL to the user's avatar image"
-  })
-  avatar?: string;
+  // @ApiProperty({
+  //   example: 'https://example.com/profile_picture.jpg',
+  //   description: "URL to the user's avatar image"
+  // })
+  // avatar?: string;
 
   @ApiProperty({
     example: 'A short bio about the user',
@@ -150,8 +153,8 @@ export abstract class UserResponseDto {
   })
   bio?: string;
 
-  @ApiProperty()
-  coverImage?: string;
+  // @ApiProperty()
+  // coverImage?: string;
 
   @ApiProperty()
   dob?: string;
@@ -162,8 +165,8 @@ export abstract class UserResponseDto {
   @ApiProperty()
   location?: string;
 
-  @ApiProperty()
-  verificationStatus?: boolean;
+  // @ApiProperty()
+  // verificationStatus?: boolean;
 
   @ApiProperty()
   referralCode?: string;

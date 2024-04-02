@@ -9,8 +9,7 @@ export class BlockchainWallet {
 
 export class SocialNetwork {
   social: string;
-  id: string;
-  username?: string;
+  username: string;
 }
 
 export class UserExperience {
@@ -65,23 +64,23 @@ export class User extends AbstractEntity {
   @Column({ nullable: true, default: [] })
   socialProfiles: SocialNetwork[];
 
-  @Column({ nullable: true, default: 0 })
-  twitterPoints: number;
+  // @Column({ nullable: true, default: 0 })
+  // twitterPoints: number;
 
-  @Column({ nullable: true, default: 0 })
-  royaltyPoints: number;
+  // @Column({ nullable: true, default: 0 })
+  // royaltyPoints: number;
 
-  @Column({ nullable: true, default: 0 })
-  totalPoints: number;
+  // @Column({ nullable: true, default: 0 })
+  // totalPoints: number;
 
-  @Column({ nullable: true, default: null })
-  avatar: string;
+  // @Column({ nullable: true, default: null })
+  // avatar: string;
 
   @Column({ nullable: true, default: null })
   bio: string;
 
-  @Column({ nullable: true, default: null })
-  coverImage: string;
+  // @Column({ nullable: true, default: null })
+  // coverImage: string;
 
   @Column({ nullable: true, default: null })
   dob: string;
@@ -92,14 +91,17 @@ export class User extends AbstractEntity {
   @Column({ nullable: true, default: null })
   location: string;
 
-  @Column({ nullable: true, default: null })
-  verificationStatus: boolean;
+  // @Column({ nullable: true, default: null })
+  // verificationStatus: boolean;
 
   @Column({ nullable: true, default: null })
   referralCode: string;
 
   @Column({ nullable: true, default: null })
   lastLogin: string;
+
+  @Column({ nullable: true, default: null })
+  twitterInfo: any;
 
   @BeforeInsert()
   async beforeInsert() {
@@ -112,39 +114,39 @@ export class User extends AbstractEntity {
     if (!this.phoneNumber) this.phoneNumber = null;
     if (!this.wallets) this.wallets = [];
     if (!this.socialProfiles) this.socialProfiles = [];
-    if (!this.twitterPoints) this.twitterPoints = 0;
-    if (!this.royaltyPoints) this.royaltyPoints = 0;
-    // if (!this.avatar) this.avatar = null;
-    if (!this.bio) this.bio = null;
-    if (!this.coverImage) this.coverImage = null;
-    if (!this.dob) this.dob = null;
-    if (!this.gender) this.gender = null;
-    if (!this.location) this.location = null;
-    if (!this.verificationStatus) this.verificationStatus = null;
-    if (!this.referralCode) this.referralCode = null;
-    if (!this.lastLogin) this.lastLogin = null;
-    this.totalPoints = this.twitterPoints + this.royaltyPoints;
-    // this.userId = this._id.toString();
-  }
-
-  @BeforeUpdate()
-  async beforeUpdate() {
-    // if (!this.fullName) this.fullName = null;
-    // if (!this.email) this.email = null;
-    // if (!this.phoneNumber) this.phoneNumber = null;
-    // if (!this.wallets) this.wallets = [];
-    // if (!this.socialProfiles) this.socialProfiles = [];
     // if (!this.twitterPoints) this.twitterPoints = 0;
     // if (!this.royaltyPoints) this.royaltyPoints = 0;
     // if (!this.avatar) this.avatar = null;
-    // if (!this.bio) this.bio = null;
+    if (!this.bio) this.bio = null;
     // if (!this.coverImage) this.coverImage = null;
-    // if (!this.dob) this.dob = null;
-    // if (!this.gender) this.gender = null;
-    // if (!this.location) this.location = null;
+    if (!this.dob) this.dob = null;
+    if (!this.gender) this.gender = null;
+    if (!this.location) this.location = null;
     // if (!this.verificationStatus) this.verificationStatus = null;
-    // if (!this.referralCode) this.referralCode = null;
-    // if (!this.lastLogin) this.lastLogin = null;
-    this.totalPoints = this.twitterPoints + this.royaltyPoints;
+    if (!this.referralCode) this.referralCode = null;
+    if (!this.lastLogin) this.lastLogin = null;
+    // this.totalPoints = this.twitterPoints + this.royaltyPoints;
+    // this.userId = this._id.toString();
   }
+
+  // @BeforeUpdate()
+  // async beforeUpdate() {
+  // if (!this.fullName) this.fullName = null;
+  // if (!this.email) this.email = null;
+  // if (!this.phoneNumber) this.phoneNumber = null;
+  // if (!this.wallets) this.wallets = [];
+  // if (!this.socialProfiles) this.socialProfiles = [];
+  // if (!this.twitterPoints) this.twitterPoints = 0;
+  // if (!this.royaltyPoints) this.royaltyPoints = 0;
+  // if (!this.avatar) this.avatar = null;
+  // if (!this.bio) this.bio = null;
+  // if (!this.coverImage) this.coverImage = null;
+  // if (!this.dob) this.dob = null;
+  // if (!this.gender) this.gender = null;
+  // if (!this.location) this.location = null;
+  // if (!this.verificationStatus) this.verificationStatus = null;
+  // if (!this.referralCode) this.referralCode = null;
+  // if (!this.lastLogin) this.lastLogin = null;
+  //   this.totalPoints = this.twitterPoints + this.royaltyPoints;
+  // }
 }

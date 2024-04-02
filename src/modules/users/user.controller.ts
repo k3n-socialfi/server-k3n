@@ -93,6 +93,28 @@ export class UserController {
     };
   }
 
+  @Get('kols/ranking')
+  // @ApiOkResponse({
+  //   description: 'Get all user response',
+  //   type: SwaggerUserListResponseDto
+  // })
+  // @HasRoles(Role.Admin)
+  // @UseGuards(AccessTokenGuard, RolesGuard)
+  public async findTopKolsRanking(@Query(new ValidationPipe({ transform: true })) query: RequestKolsTrending) {
+    let { page, limit, type } = query;
+    page = page ? +page : 0;
+    limit = limit ? +limit : 100;
+    return {
+      code: 200,
+      message: 'Get all user successful',
+      data: await this.userService.findTopKolsRanking({
+        page,
+        limit,
+        type
+      })
+    };
+  }
+
   @Get(':userId')
   @ApiResponse({
     description: 'Get user by id response',
@@ -220,15 +242,15 @@ export class UserController {
     };
   }
 
-  @Post('/points/update')
-  @UseGuards(AccessTokenGuard)
-  public async updatePoints(@Req() req: Request) {
-    const userObject = JSON.parse(JSON.stringify(req.user));
-    // console.log('userObject:', userObject);
-    return {
-      code: 201,
-      message: 'Update points successful',
-      data: await this.userService.updateUserPoints(userObject?.username)
-    };
-  }
+  // @Post('/points/update')
+  // @UseGuards(AccessTokenGuard)
+  // public async updatePoints(@Req() req: Request) {
+  //   const userObject = JSON.parse(JSON.stringify(req.user));
+  //   // console.log('userObject:', userObject);
+  //   return {
+  //     code: 201,
+  //     message: 'Update points successful',
+  //     data: await this.userService.updateUserPoints(userObject?.username)
+  //   };
+  // }
 }

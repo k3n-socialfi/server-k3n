@@ -20,6 +20,7 @@ import { UserService } from '../users/user.service';
 import { TwPoints } from './entities/twitter-points.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { TwitterUsers } from '../users/entities/twitter-user.entity';
 
 @Injectable()
 export class TwitterService {
@@ -29,24 +30,64 @@ export class TwitterService {
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
     @InjectRepository(TwPoints) private twitterPointRep: Repository<TwPoints>,
+    @InjectRepository(TwitterUsers) private twitterUsersRep: Repository<TwitterUsers>,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
 
-  // @Cron(CronExpression.EVERY_12_HOURS)
+  @Cron(CronExpression.EVERY_12_HOURS)
   // @Timeout(0)
   async TwitterJob() {
     try {
       console.log('Start run twitter job !');
-      const users = await this.userService.findAll();
-      await Promise.all(
-        users.map(async (user) => {
-          const twitter = user.socialProfiles.find((tw) => tw.social === 'twitter');
-          console.log('twitter:', twitter);
-          if (twitter) {
-            await this.updateUserTweetPointsTrending(user.userId, twitter.username);
-          }
-        })
-      );
+      const twitterUsers = await this.twitterUsersRep.find();
+      for (let i = 0; i < twitterUsers.length; i++) {
+        const twPoints = await this.getUserTweetPoints({ username: twitterUsers[i].username });
+        let twitterPoints =
+          twPoints.allTweets.totalFavoriteCount +
+          twPoints.allTweets.totalRetweetCount * 2 +
+          twPoints.allTweets.totalReplyCount * 2 +
+          twPoints.allTweets.totalQuoteCount * 3 +
+          twPoints.allTweets.totalViews +
+          twPoints.latestTweet.favoriteCount +
+          twPoints.latestTweet.retweetCount * 2 +
+          twPoints.latestTweet.replyCount * 2 +
+          twPoints.latestTweet.quoteCount * 3 +
+          twPoints.latestTweet.views;
+        // const royaltyPoints = user.royaltyPoints;
+
+        twitterUsers[i].twitterPoints = twitterPoints;
+
+        await this.twitterUsersRep.save(twitterUsers[i]);
+      }
+
+      const batchSize = 1;
+      const batches = [];
+      for (let i = 0; i < twitterUsers.length; i += batchSize) {
+        batches.push(twitterUsers.slice(i, i + batchSize));
+      }
+      batches.map(async (batch) => {
+        await Promise.all(
+          batch.map(async (user) => {
+            const twPoints = await this.getUserTweetPoints(user.username);
+            let twitterPoints =
+              twPoints.allTweets.totalFavoriteCount +
+              twPoints.allTweets.totalRetweetCount * 2 +
+              twPoints.allTweets.totalReplyCount * 2 +
+              twPoints.allTweets.totalQuoteCount * 3 +
+              twPoints.allTweets.totalViews +
+              twPoints.latestTweet.favoriteCount +
+              twPoints.latestTweet.retweetCount * 2 +
+              twPoints.latestTweet.replyCount * 2 +
+              twPoints.latestTweet.quoteCount * 3 +
+              twPoints.latestTweet.views;
+            // const royaltyPoints = user.royaltyPoints;
+
+            user.twitterPoints = twitterPoints;
+
+            await this.twitterUsersRep.save(user);
+          })
+        );
+      });
       console.log('Running transaction job is done !');
     } catch (err) {
       console.log('err:', err);
@@ -72,7 +113,7 @@ export class TwitterService {
     }
   }
 
-  async findTwitterUsersById(id: string): Promise<TwitterUserDetailResponseDto> {
+  async findTwitterUsersById(id: string) {
     try {
       const headers = this.configService.get('rapidApi');
       const call = this.httpService
