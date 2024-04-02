@@ -8,7 +8,7 @@ import { ResponseDto } from './success-response.dto';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-  constructor(@Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger) { }
+  constructor(@Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     // Handle request
@@ -29,6 +29,10 @@ export class LoggingInterceptor implements NestInterceptor {
 
     const request = context.switchToHttp().getRequest();
     request.headers['requestId'] = requestID;
+
+    if (request.path === '/api/v1/oauth/twitter/callback') {
+      return next.handle(); // Directly proceed without logging or wrapping
+    }
 
     const body = request.body;
     if (body && Object.keys(body).length != 0) {

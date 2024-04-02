@@ -12,8 +12,9 @@ import { CoreModule } from './modules/core.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { CacheModule } from '@nestjs/cache-manager';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
 import { SnakeToCamelInterceptor } from '@common/interceptors/snake-to-camel.interceptor';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { SnakeToCamelInterceptor } from '@common/interceptors/snake-to-camel.int
     WinstonModule.forRoot(MyConfigService.getWinstonConfig(LoggerType.APP)),
     CoreModule,
     TerminusModule,
-    HttpModule
+    HttpModule,
+    ScheduleModule.forRoot()
   ],
   controllers: [AppController],
   providers: [

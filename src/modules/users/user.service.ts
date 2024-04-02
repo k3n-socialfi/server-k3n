@@ -1,4 +1,12 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  forwardRef,
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -8,7 +16,7 @@ import { ErrorsCodes, ErrorsMap } from '@common/constants/respond-errors';
 import { InternalUserResponseDto, UserListResponseDto, UserResponseDto } from './dto/response/user-response.dto';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Role } from '@common/constants/enum';
-import { RequestUserQuery } from './dto/request/query-user.dto';
+import { RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
 import { UpdateUserByAdminDto } from './dto/request/admin-update-user.dto';
 import { TwitterService } from '../twitter/twitter.service';
 import { Cache } from 'cache-manager';
@@ -21,6 +29,7 @@ import { ObjectId } from 'mongodb';
 export class UserService {
   constructor(
     private readonly httpService: HttpService,
+    @Inject(forwardRef(() => TwitterService))
     private readonly twitterService: TwitterService,
     @InjectRepository(User) private userRep: Repository<User>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -38,6 +47,49 @@ export class UserService {
     if (query.role) {
       whereConditions.role = query.role;
     }
+    const [users, totalCount] = await Promise.all([
+      this.userRep.find({
+        where: whereConditions,
+        skip: skip > 0 ? skip : 0,
+        take: query.limit,
+        order: { createdAt: 'DESC', totalPoints: 'DESC' }
+      }),
+      this.countDocuments()
+    ]);
+
+    const totalPages = Math.ceil(totalCount / query.limit);
+
+    const userResponse: UserResponseDto[] = users.map((user) => {
+      const { password, _id, ...userData } = user;
+      return userData;
+    });
+
+    return {
+      users: userResponse,
+      page: query.page,
+      pageSize: users.length,
+      totalPages: totalPages,
+      totalItems: totalCount
+    };
+  }
+
+  async findAll() {
+    const user = this.userRep.find();
+    return user;
+  }
+
+  async findKolsTrending(query: RequestKolsTrending): Promise<UserListResponseDto> {
+    const skip = (query.page - 1) * query.limit;
+
+    // query conditions
+    const whereConditions: any = {};
+    // if (query.username) {
+    //   whereConditions.username = query.username;
+    // }
+
+    // if (query.role) {
+    //   whereConditions.role = query.role;
+    // }
     const [users, totalCount] = await Promise.all([
       this.userRep.find({
         where: whereConditions,
@@ -134,11 +186,11 @@ export class UserService {
     }
   }
 
-  async findByTwitterUsername(username: string): Promise<UserResponseDto> {
+  async findByTwitterId(id: string): Promise<UserResponseDto> {
     try {
       const users = await this.userRep.find({});
       const userWithUsername = users?.find((user) =>
-        user.socialProfiles?.some((social) => social.username === username && social.social === 'twitter')
+        user.socialProfiles?.some((social) => social.id === id && social.social === 'twitter')
       );
       return userWithUsername;
     } catch (err) {
@@ -201,17 +253,20 @@ export class UserService {
   }
 
   async createUserWithTwitter(request: CreateUserWithTwitterDto): Promise<UserResponseDto> {
-    const { username, displayName, image, password } = request;
+    const { id, username, password } = request;
+    const twUser = await this.twitterService.findTwitterUsersById(id);
     const social = new SocialNetwork();
     social.social = 'twitter';
-    social.username = username.toLowerCase();
+    social.id = id;
+    social.username = username;
     const userId = generateId();
     const userCreated = {
       userId,
-      username: username.toLowerCase(),
-      avatar: image,
-      fullName: displayName,
+      username,
       password,
+      avatar: twUser?.profilePicUrl,
+      coverImage: twUser?.profileBannerUrl,
+      bio: twUser?.description,
       role: Role.User,
       socialProfiles: [social]
     };
@@ -254,7 +309,7 @@ export class UserService {
     if (Date.now() - createdTweet > 3600000) {
       throw new BadRequestException('Tweet is out of date. Please try again with another tweet');
     }
-    const twUsername = await this.findByTwitterUsername(tweetDetail.user.username);
+    const twUsername = await this.findByTwitterId(tweetDetail.user.id);
 
     // Check the user in the text
     if (tweetDetail.text.indexOf(user.userId.toString()) !== -1) {
@@ -310,7 +365,7 @@ export class UserService {
 
     let twitterPoints = 0;
     if (twitterInfo) {
-      const twPoints = await this.twitterService.getUserTweetPoints(twitterInfo.username);
+      const twPoints = await this.twitterService.getUserTweetPoints({ username: twitterInfo.username });
       // console.log('twPoints:', twPoints);
 
       twitterPoints =

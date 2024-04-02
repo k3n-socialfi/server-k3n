@@ -20,14 +20,15 @@ export class OauthController {
   @UseGuards(TwitterOauthGuard)
   async twitterAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const userObject = JSON.parse(JSON.stringify(req.user));
-
     const rs = await this.authService.loginWithTwitter({
-      username: userObject?.username,
-      displayName: userObject?.displayName,
-      image: userObject?._json?.profile_image_url
+      id: userObject?.id,
+      username: userObject?.username
+      // displayName: userObject?.displayName,
+      // image: userObject?._json?.profile_image_url
     });
-
-    res.redirect(`https://www.example.com/login?accessToken=${rs.accessToken}&refreshToken=${rs.refreshToken}`);
+    return res.redirect(
+      `https://client-k3n.vercel.app/login?accessToken=${rs.accessToken}&refreshToken=${rs.refreshToken}`
+    );
   }
 
   @Get('google')

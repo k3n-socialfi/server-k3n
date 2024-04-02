@@ -14,7 +14,6 @@ export class SnakeToCamelInterceptor implements NestInterceptor {
   }
 
   private transformResponseData(data: any): any {
-    // Chuyển đổi dữ liệu từ snake_case thành camelCase
     return camelizeKeys(data);
   }
 }

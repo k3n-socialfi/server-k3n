@@ -2,7 +2,7 @@ import { HttpExceptionFilter } from '@common/exceptions/http-exception.filter';
 import { LoggingInterceptor } from '@common/interceptors/logging.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { AppModule } from './app.module';
@@ -31,12 +31,13 @@ async function bootstrap() {
 
   // HttpException custom
   app.useGlobalFilters(new HttpExceptionFilter(app.get(WINSTON_MODULE_NEST_PROVIDER)));
+  const reflector = app.get(Reflector);
 
   // app.use(favicon(path.join(__dirname, '..', 'public', 'favicon.ico')));
 
   // Start API
   const configService = app.get(ConfigService);
   const PORT = configService.get('port');
-  await app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+  await app.listen(PORT, () => console.log(`Open http://localhost:${PORT}/docs to see the documentation`));
 }
 bootstrap();

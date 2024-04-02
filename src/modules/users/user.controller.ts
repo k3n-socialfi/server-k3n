@@ -31,7 +31,7 @@ import { Role } from '@common/constants/enum';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { HasRoles } from '@common/decorators/has-roles.decorator';
 import { PaginationParams } from '@common/dtos/pagination.dto';
-import { RequestUserQuery } from './dto/request/query-user.dto';
+import { RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
 import {
   SwaggerCreateUserByAdminResponseDto,
   SwaggerUpdateUserByAdminResponseDto,
@@ -66,6 +66,29 @@ export class UserController {
         page,
         limit,
         ...query
+      })
+    };
+  }
+
+  @Get('kols/trending')
+  // @ApiOkResponse({
+  //   description: 'Get all user response',
+  //   type: SwaggerUserListResponseDto
+  // })
+  // @HasRoles(Role.Admin)
+  // @UseGuards(AccessTokenGuard, RolesGuard)
+  public async getKolsTrending(@Query(new ValidationPipe({ transform: true })) query: RequestKolsTrending) {
+    // console.log('req:', req.user)
+    let { page, limit, type } = query;
+    page = page ? +page : 0;
+    limit = limit ? +limit : 10;
+    return {
+      code: 200,
+      message: 'Get all user successful',
+      data: await this.userService.findKolsTrending({
+        page,
+        limit,
+        type
       })
     };
   }

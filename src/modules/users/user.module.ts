@@ -7,7 +7,7 @@ import { HttpModule } from '@nestjs/axios';
 import { TwitterModule } from '../twitter/twitter.module';
 
 @Module({
-  imports: [HttpModule, TypeOrmModule.forFeature([User]), TwitterModule],
+  imports: [HttpModule, TypeOrmModule.forFeature([User]), forwardRef(() => TwitterModule)],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService]

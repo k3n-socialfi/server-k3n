@@ -9,7 +9,8 @@ export class BlockchainWallet {
 
 export class SocialNetwork {
   social: string;
-  username: string;
+  id: string;
+  username?: string;
 }
 
 export class UserExperience {
@@ -113,7 +114,7 @@ export class User extends AbstractEntity {
     if (!this.socialProfiles) this.socialProfiles = [];
     if (!this.twitterPoints) this.twitterPoints = 0;
     if (!this.royaltyPoints) this.royaltyPoints = 0;
-    if (!this.avatar) this.avatar = null;
+    // if (!this.avatar) this.avatar = null;
     if (!this.bio) this.bio = null;
     if (!this.coverImage) this.coverImage = null;
     if (!this.dob) this.dob = null;

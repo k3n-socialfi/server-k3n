@@ -74,9 +74,9 @@ export class AuthService {
   }
 
   async loginWithTwitter(req: LoginWithTwitterDto): Promise<LoginUserResponseDto> {
-    const { username, displayName, image } = req;
+    const { id, username } = req;
 
-    const userExists = await this.usersService.findByTwitterUsername(username);
+    const userExists = await this.usersService.findByTwitterId(id);
     if (userExists) {
       const tokens = await this.getTokens(userExists.userId, userExists.username, userExists.role);
       return {
@@ -85,17 +85,16 @@ export class AuthService {
         refreshToken: tokens.refreshToken
       };
     } else {
-      const userWithUsername = this.usersService.findByUserName(username);
-      let newUsername = username;
-      if (userWithUsername) newUsername = getRandomUsernameWithNumber();
+      // const userWithUsername = await this.usersService.findByUserName(username);
+      // let newUsername = username;
+      // if (userWithUsername) newUsername = getRandomUsernameWithNumber();
       // Hash password
       const password = randomString(10);
       const hash = await this.hashData(password);
       const newUser = await this.usersService.createUserWithTwitter({
-        username: newUsername,
-        password: hash,
-        displayName,
-        image
+        id,
+        username,
+        password: hash
       });
       const tokens = await this.getTokens(newUser.userId, newUser.username, newUser.role);
       return {

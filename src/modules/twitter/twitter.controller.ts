@@ -9,16 +9,29 @@ import { RequestUserTweetQuery } from './dto/request/user-tweet.dto';
 @ApiTags('Twitter')
 export class TwitterController {
   constructor(private readonly twitterService: TwitterService) {}
-  @Get(':username')
+  @Get('/username/:username')
   @ApiResponse({
     description: 'Get twitter user response',
     type: SwaggerTwitterUserResponseDto
   })
-  public async getUser(@Param('username') username: string) {
+  public async getUserByUsername(@Param('username') username: string) {
     return {
       code: 200,
       message: 'Get all user successful',
-      data: await this.twitterService.findTwitterUsers(username)
+      data: await this.twitterService.findTwitterUsersByUsername(username)
+    };
+  }
+
+  @Get(':id')
+  @ApiResponse({
+    description: 'Get twitter user response',
+    type: SwaggerTwitterUserResponseDto
+  })
+  public async getUserById(@Param('id') id: string) {
+    return {
+      code: 200,
+      message: 'Get all user successful',
+      data: await this.twitterService.findTwitterUsersById(id)
     };
   }
 
@@ -68,7 +81,7 @@ export class TwitterController {
     return {
       code: 200,
       message: "Get user's tweets points successful",
-      data: await this.twitterService.getUserTweetPoints(username)
+      data: await this.twitterService.getUserTweetPoints({ username })
     };
   }
 }

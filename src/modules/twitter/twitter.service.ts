@@ -2,6 +2,7 @@ import { RapidApiEndpoints, TwitterEndpoints } from '@common/constants/twitter-e
 import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
+  forwardRef,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -12,15 +13,46 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { TwitterUserDetailResponseDto } from './dto/response/user-detail-response.dto';
 import { TweetDetailResponseDto } from './dto/response/tweet-detail-response.dto';
+import { IntervalTime } from '@common/constants/enum';
+import { Cron, CronExpression, Timeout } from '@nestjs/schedule';
+import { TwitterPoints } from './dto/twitter-points.dto';
+import { UserService } from '../users/user.service';
+import { TwPoints } from './entities/twitter-points.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TwitterService {
   constructor(
     private readonly httpService: HttpService,
     private configService: ConfigService,
+    @Inject(forwardRef(() => UserService))
+    private userService: UserService,
+    @InjectRepository(TwPoints) private twitterPointRep: Repository<TwPoints>,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
-  async findTwitterUsers(username: string): Promise<TwitterUserDetailResponseDto> {
+
+  // @Cron(CronExpression.EVERY_12_HOURS)
+  // @Timeout(0)
+  async TwitterJob() {
+    try {
+      console.log('Start run twitter job !');
+      const users = await this.userService.findAll();
+      await Promise.all(
+        users.map(async (user) => {
+          const twitter = user.socialProfiles.find((tw) => tw.social === 'twitter');
+          console.log('twitter:', twitter);
+          if (twitter) {
+            await this.updateUserTweetPointsTrending(user.userId, twitter.username);
+          }
+        })
+      );
+      console.log('Running transaction job is done !');
+    } catch (err) {
+      console.log('err:', err);
+    }
+  }
+  async findTwitterUsersByUsername(username: string): Promise<TwitterUserDetailResponseDto> {
     try {
       const headers = this.configService.get('rapidApi');
       const call = this.httpService
@@ -31,32 +63,26 @@ export class TwitterService {
 
       const res = (await call)?.data;
       //   console.log('res:', res);
-      return {
-        userId: res?.user_id,
-        username: res?.username,
-        name: res?.name,
-        followerCount: res?.follower_count,
-        followingCount: res?.following_count,
-        favouritesCount: res?.favourites_count,
-        isPrivate: res?.is_private,
-        isVerified: res?.is_verified,
-        isBlueVerified: res?.is_blue_verified,
-        location: res?.location,
-        profilePicUrl: res?.profile_pic_url,
-        profileBannerUrl: res?.profile_banner_url,
-        description: res?.description,
-        externalUrl: res?.external_url,
-        numberOfTweets: res?.number_of_tweets,
-        bot: res?.bot,
-        timestamp: res?.timestamp,
-        hasNftAvatar: res?.has_nft_avatar,
-        category: res?.category,
-        defaultProfile: res?.default_profile,
-        defaultProfileImage: res?.default_profile_image,
-        listedCount: res?.listed_count,
-        verifiedType: res?.verified_type,
-        creationDate: res?.creation_date
-      };
+      return res;
+    } catch (err) {
+      // console.error('err:', err)
+      // this.logger.error(err, err.stack, TwitterService.name);
+      this.logger.error(err?.response?.data?.errors, err.stack, TwitterService.name);
+      throw new InternalServerErrorException(err?.response?.data?.errors);
+    }
+  }
+
+  async findTwitterUsersById(id: string): Promise<TwitterUserDetailResponseDto> {
+    try {
+      const headers = this.configService.get('rapidApi');
+      const call = this.httpService
+        .get(RapidApiEndpoints.USER_DETAILS + `?user_id=${id}`, {
+          headers
+        })
+        .toPromise();
+      const res = (await call)?.data;
+      //   console.log('res:', res);
+      return res;
     } catch (err) {
       // console.error('err:', err)
       // this.logger.error(err, err.stack, TwitterService.name);
@@ -200,19 +226,32 @@ export class TwitterService {
     return res;
   }
 
-  async getUserTweetPoints(username: string) {
+  async getUserTweetPoints({ username, time }: { username: string; time?: string }) {
+    const nowMs = Date.now();
     const tweets = await this.getUserTweets({ username, limit: 20, includePinned: true, includeReplies: false });
     let totalFavoriteCount = 0;
     let totalRetweetCount = 0;
     let totalReplyCount = 0;
     let totalQuoteCount = 0;
     let totalViews = 0;
-    tweets.map((tweet) => {
-      totalFavoriteCount += tweet.favorite_count;
-      totalRetweetCount += tweet.retweet_count;
-      totalReplyCount += tweet.reply_count;
-      totalQuoteCount += tweet.quote_count;
-      totalViews += tweet.views;
+    tweets.map((tweet: any) => {
+      const tweetTime = new Date(tweet.creation_date);
+      if (time) {
+        const intervalTime = IntervalTime[time];
+        if (tweetTime.getTime() >= nowMs - intervalTime * 1000) {
+          totalFavoriteCount += tweet.favorite_count;
+          totalRetweetCount += tweet.retweet_count;
+          totalReplyCount += tweet.reply_count;
+          totalQuoteCount += tweet.quote_count;
+          totalViews += tweet.views;
+        }
+      } else {
+        totalFavoriteCount += tweet.favorite_count;
+        totalRetweetCount += tweet.retweet_count;
+        totalReplyCount += tweet.reply_count;
+        totalQuoteCount += tweet.quote_count;
+        totalViews += tweet.views;
+      }
     });
     return {
       allTweets: {
@@ -230,5 +269,137 @@ export class TwitterService {
         views: tweets[0]?.views || 0
       }
     };
+  }
+
+  async updateUserTweetPointsTrending(userId: string, username: string) {
+    const nowMs = Date.now();
+    const tweets = await this.getUserTweets({ username, limit: 20, includePinned: true, includeReplies: false });
+    let oneDay: TwitterPoints;
+    let threeDays: TwitterPoints;
+    let sevenDays: TwitterPoints;
+    let allTweets: TwitterPoints;
+    tweets.map((tweet: any) => {
+      const tweetTime = new Date(tweet.creation_date);
+
+      if (tweetTime.getTime() >= nowMs - IntervalTime['1d'] * 1000) {
+        oneDay.totalFavoriteCount += tweet.favorite_count;
+        oneDay.totalRetweetCount += tweet.retweet_count;
+        oneDay.totalReplyCount += tweet.reply_count;
+        oneDay.totalQuoteCount += tweet.quote_count;
+        oneDay.totalViews += tweet.views;
+        oneDay.totalTweets += 1;
+
+        threeDays.totalFavoriteCount += tweet.favorite_count;
+        threeDays.totalRetweetCount += tweet.retweet_count;
+        threeDays.totalReplyCount += tweet.reply_count;
+        threeDays.totalQuoteCount += tweet.quote_count;
+        threeDays.totalViews += tweet.views;
+        threeDays.totalTweets += 1;
+
+        sevenDays.totalFavoriteCount += tweet.favorite_count;
+        sevenDays.totalRetweetCount += tweet.retweet_count;
+        sevenDays.totalReplyCount += tweet.reply_count;
+        sevenDays.totalQuoteCount += tweet.quote_count;
+        sevenDays.totalViews += tweet.views;
+        sevenDays.totalTweets += 1;
+      } else if (tweetTime.getTime() >= nowMs - IntervalTime['3d'] * 1000) {
+        threeDays.totalFavoriteCount += tweet.favorite_count;
+        threeDays.totalRetweetCount += tweet.retweet_count;
+        threeDays.totalReplyCount += tweet.reply_count;
+        threeDays.totalQuoteCount += tweet.quote_count;
+        threeDays.totalViews += tweet.views;
+        threeDays.totalTweets += 1;
+
+        sevenDays.totalFavoriteCount += tweet.favorite_count;
+        sevenDays.totalRetweetCount += tweet.retweet_count;
+        sevenDays.totalReplyCount += tweet.reply_count;
+        sevenDays.totalQuoteCount += tweet.quote_count;
+        sevenDays.totalViews += tweet.views;
+        sevenDays.totalTweets += 1;
+      } else if (tweetTime.getTime() >= nowMs - IntervalTime['7d'] * 1000) {
+        sevenDays.totalFavoriteCount += tweet.favorite_count;
+        sevenDays.totalRetweetCount += tweet.retweet_count;
+        sevenDays.totalReplyCount += tweet.reply_count;
+        sevenDays.totalQuoteCount += tweet.quote_count;
+        sevenDays.totalViews += tweet.views;
+        sevenDays.totalTweets += 1;
+      } else {
+        allTweets.totalFavoriteCount += tweet.favorite_count;
+        allTweets.totalRetweetCount += tweet.retweet_count;
+        allTweets.totalReplyCount += tweet.reply_count;
+        allTweets.totalQuoteCount += tweet.quote_count;
+        allTweets.totalViews += tweet.views;
+        allTweets.totalTweets += 1;
+      }
+    });
+    allTweets.totalFavoriteCount += sevenDays.totalFavoriteCount;
+    allTweets.totalRetweetCount += sevenDays.totalRetweetCount;
+    allTweets.totalReplyCount += sevenDays.totalReplyCount;
+    allTweets.totalQuoteCount += sevenDays.totalQuoteCount;
+    allTweets.totalViews += sevenDays.totalViews;
+    allTweets.totalTweets += sevenDays.totalTweets;
+    // const rs = {
+    //   oneDayTweets: oneDay,
+    //   threeDayTweets: threeDays,
+    //   sevenDayTweets: sevenDays,
+    //   allTweets: {
+    //     totalFavoriteCount,
+    //     totalRetweetCount,
+    //     totalReplyCount,
+    //     totalQuoteCount,
+    //     totalViews,
+    //     totalTweets
+    //   },
+    //   latestTweet: {
+    //     favoriteCount: tweets[0]?.favorite_count || 0,
+    //     retweetCount: tweets[0]?.retweet_count || 0,
+    //     replyCount: tweets[0]?.reply_count || 0,
+    //     quoteCount: tweets[0]?.quote_count || 0,
+    //     views: tweets[0]?.views || 0,
+    //     creationDate: tweets[0]?.creation_date || null
+    //   }
+    // };
+
+    const userTws = await this.twitterPointRep.findOne({
+      where: {
+        userId
+      }
+    });
+    if (!userTws) {
+      const created = {
+        userId,
+        username,
+        oneDayTweets: oneDay,
+        threeDayTweets: threeDays,
+        sevenDayTweets: sevenDays,
+        allTweets,
+        latestTweet: {
+          favoriteCount: tweets[0]?.favorite_count || 0,
+          retweetCount: tweets[0]?.retweet_count || 0,
+          replyCount: tweets[0]?.reply_count || 0,
+          quoteCount: tweets[0]?.quote_count || 0,
+          views: tweets[0]?.views || 0,
+          creationDate: tweets[0]?.creation_date || null
+        }
+      };
+      const saveUserTw = this.twitterPointRep.create(created);
+      await this.twitterPointRep.save(saveUserTw);
+      return saveUserTw;
+    } else {
+      userTws.oneDayTweets = oneDay;
+      userTws.threeDayTweets = threeDays;
+      userTws.sevenDayTweets = sevenDays;
+      userTws.allTweets = allTweets;
+      userTws.latestTweet = {
+        favoriteCount: tweets[0]?.favorite_count || 0,
+        retweetCount: tweets[0]?.retweet_count || 0,
+        replyCount: tweets[0]?.reply_count || 0,
+        quoteCount: tweets[0]?.quote_count || 0,
+        views: tweets[0]?.views || 0,
+        creationDate: tweets[0]?.creation_date || null
+      };
+      await this.twitterPointRep.save(userTws);
+      return userTws;
+    }
   }
 }

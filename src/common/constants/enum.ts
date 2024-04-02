@@ -10,10 +10,16 @@ export enum JwtType {
 
 export const enum Role {
   User = 'user',
-  Admin = 'admin',
+  Admin = 'admin'
 }
 
 export const RoleMap = {
   [Role.User]: 0,
-  [Role.Admin]: 1,
+  [Role.Admin]: 1
+};
+
+export const IntervalTime = {
+  ['1d']: 86400,
+  ['3d']: 259200,
+  ['7d']: 604800
 };
