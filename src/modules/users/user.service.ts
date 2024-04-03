@@ -200,6 +200,17 @@ export class UserService {
     return user;
   }
 
+  async checkExistsAddress(address: string): Promise<boolean> {
+    const users = await this.userRep.find({});
+    const userWithAddress = users?.find((user) =>
+      user.wallets?.find((wallet) => wallet.address.toLowerCase() === address.toLowerCase())
+    );
+    if (!userWithAddress) {
+      return false;
+    }
+    return true;
+  }
+
   async findByUserId(userId: string): Promise<UserResponseDto> {
     const user = await this.userRep.findOne({
       where: {

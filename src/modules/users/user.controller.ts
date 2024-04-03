@@ -130,6 +130,19 @@ export class UserController {
     };
   }
 
+  @Get('/check-exists/:address')
+  @ApiResponse({
+    description: 'Get user by id response',
+    type: SwaggerUserResponseDto
+  })
+  public async checkExistsAddress(@Param('address') address: string) {
+    return {
+      code: 200,
+      message: 'Check user exists by address successful',
+      data: await this.userService.checkExistsAddress(address)
+    };
+  }
+
   @Get('profile/:username')
   @ApiResponse({
     description: 'Get profile user by username response',
