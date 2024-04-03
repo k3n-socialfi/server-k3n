@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { TwitterService } from '../twitter/twitter.service';
 import { User } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -99,5 +99,75 @@ export class JobsService {
     }
     const { _id, ...jobData } = job;
     return jobData;
+  }
+
+  async getProjectById(id: string) {
+    try {
+      const call = this.httpService.get(`https://api.coingecko.com/api/v3/coins/${id}`).toPromise();
+      const res = (await call)?.data;
+
+      let userTweet = [];
+      if (res?.links?.twitter_screen_name) {
+        userTweet = await this.twitterService.getUserTweets({ username: res?.links?.twitter_screen_name });
+      }
+      const project = {
+        name: res?.name,
+        description: res?.description?.en,
+        image: res?.image?.thumb,
+        categories: res?.categories,
+        social: {
+          twitter: res?.links?.twitter_screen_name,
+          facebook: res?.links?.facebook_username,
+          telegram: res?.links?.telegram_channel_identifier,
+          github: res?.links?.repos_url?.github
+        },
+        twitterFollowers: res?.community_data?.twitter_followers,
+        contractAddress: res?.contract_address,
+        whitePaper: res?.links?.whitepaper,
+        website: res?.links?.homepage?.[0],
+        projectType: res?.categories?.[0],
+        primaryEcosystem: res?.asset_platform_id,
+        price: res?.market_data?.current_price?.usd,
+        circulatingSupply: res?.market_data?.circulating_supply,
+        maxSupply: res?.market_data?.max_supply,
+        totalSupply: res?.market_data?.total_supply,
+        ath: res?.market_data?.ath?.usd,
+        athDate: res?.market_data?.ath_date?.usd,
+        volume24h: res?.market_data?.total_volume?.usd,
+        marketCap: res?.market_data?.market_cap?.usd,
+        marketCapRank: res?.market_data?.market_cap_rank,
+        fdv: res?.market_data?.market_cap_fdv_ratio,
+        tvl: res?.market_data?.total_value_locked,
+        tweets: userTweet.slice(0, 4)
+      };
+      return project;
+    } catch (err) {
+      console.log('err:', err);
+      this.logger.error(err?.response?.data?.errors, err.stack, TwitterService.name);
+      throw new InternalServerErrorException(err?.response?.data?.errors);
+    }
+  }
+
+  async getTrendingProjects() {
+    try {
+      const call = this.httpService.get(`https://api.coingecko.com/api/v3/search/trending`).toPromise();
+      const res = (await call)?.data;
+
+      // let userTweet = [];
+      // if (res?.links?.twitter_screen_name) {
+      //   userTweet = await this.twitterService.getUserTweets({ username: res?.links?.twitter_screen_name });
+      // }
+      const trending = res?.coins?.map((project) => {
+        // console.log('project:', project.items.data);
+        // delete project.data;
+        const { data, ...projectInfo } = project.item;
+        return projectInfo;
+      });
+      return trending;
+    } catch (err) {
+      console.log('err:', err);
+      this.logger.error(err?.response?.data?.errors, err.stack, TwitterService.name);
+      throw new InternalServerErrorException(err?.response?.data?.errors);
+    }
   }
 }

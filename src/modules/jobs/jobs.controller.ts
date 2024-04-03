@@ -41,6 +41,24 @@ export class JobsController {
     };
   }
 
+  @Get('project/:id')
+  public async getProjectById(@Param('id') id: string) {
+    return {
+      code: 200,
+      message: 'Get project by id successful',
+      data: await this.jobsService.getProjectById(id)
+    };
+  }
+
+  @Get('trending/projects')
+  public async getTrendingProjects() {
+    return {
+      code: 200,
+      message: 'Get trending project successful',
+      data: await this.jobsService.getTrendingProjects()
+    };
+  }
+
   @Post('create')
   //   @ApiCreatedResponse({
   //     description: 'Create user by admin response',
