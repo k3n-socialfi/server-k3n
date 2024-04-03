@@ -41,6 +41,8 @@ import {
 import { UpdateUserByAdminDto } from './dto/request/admin-update-user.dto';
 import { ConnectTwitterDto } from './dto/request/connect-twitter.dto';
 import { LoginSolanaDto } from '../auth/dto/login-wallet.dto';
+import { CreateUserExperienceDto, UpdateUserExperienceDto } from './dto/request/experience.dto';
+import { UpdateUserDto } from './dto/request/update-user.dto';
 
 @Controller('users')
 @ApiTags('User')
@@ -189,13 +191,13 @@ export class UserController {
     };
   }
 
-  @Put('update-profile')
+  @Put('profile/update')
   @ApiResponse({
-    description: 'Update user by admin response',
+    description: 'Update user by response',
     type: SwaggerUpdateUserByAdminResponseDto
   })
   @UseGuards(AccessTokenGuard)
-  public async updateProfileByUser(@Req() req: Request, @Body() request: UpdateUserByAdminDto) {
+  public async updateProfileByUser(@Req() req: Request, @Body() request: UpdateUserDto) {
     if (!request) throw new BadRequestException('Body request cannot be empty');
     const userObject = JSON.parse(JSON.stringify(req.user));
     return {
@@ -253,4 +255,38 @@ export class UserController {
   //     data: await this.userService.updateUserPoints(userObject?.username)
   //   };
   // }
+
+  @Post('experience/create')
+  // @ApiCreatedResponse({
+  //   description: 'Create user experience response',
+  //   type: SwaggerCreateUserByAdminResponseDto
+  // })
+  @UseGuards(AccessTokenGuard)
+  public async createUserExperience(@Req() req: Request, @Body() request: CreateUserExperienceDto) {
+    const userObject = JSON.parse(JSON.stringify(req.user));
+    return {
+      code: 201,
+      message: 'Create user by id successful',
+      data: await this.userService.createUserExperience(userObject?.sub, request)
+    };
+  }
+
+  @Put('experience/:id/update')
+  // @ApiCreatedResponse({
+  //   description: 'Create user experience response',
+  //   type: SwaggerCreateUserByAdminResponseDto
+  // })
+  @UseGuards(AccessTokenGuard)
+  public async updateUserExperience(
+    @Req() req: Request,
+    @Param('userExperienceId') userExperienceId: string,
+    @Body() request: UpdateUserExperienceDto
+  ) {
+    const userObject = JSON.parse(JSON.stringify(req.user));
+    return {
+      code: 201,
+      message: 'Update user experience by id successful',
+      data: await this.userService.updateUserExperience(userObject?.sub, userExperienceId, request)
+    };
+  }
 }

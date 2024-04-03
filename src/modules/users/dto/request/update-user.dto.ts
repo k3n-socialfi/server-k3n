@@ -1,84 +1,60 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
-    IsNotEmpty,
-    IsString,
-    ValidateNested,
-    IsNumber,
-    IsArray,
-    ArrayMinSize,
-    IsOptional,
-    IsBoolean,
-    IsEmail,
-    IsStrongPassword,
-    IsIn
+  IsNotEmpty,
+  IsString,
+  ValidateNested,
+  IsNumber,
+  IsArray,
+  ArrayMinSize,
+  IsOptional,
+  IsBoolean,
+  IsEmail,
+  IsStrongPassword,
+  IsIn
 } from 'class-validator';
 export class UpdateUserDto {
-    @ApiProperty({
-        example: 'user',
-        required: false,
-        uniqueItems: true
-    })
-    @IsOptional()
-    username: string;
+  @ApiProperty({})
+  @IsOptional()
+  type?: string;
 
-    @ApiProperty({
-        example: 'user',
-        required: false
-    })
-    @IsOptional()
-    fullName: string;
+  @ApiProperty({})
+  @IsOptional()
+  jobTitle?: string;
 
-    // @ApiProperty({
-    //     example: 'user',
-    //     required: false
-    // })
-    // @IsOptional()
-    // email: string;
+  //   @ApiProperty({})
+  //   @IsOptional()
+  //   organization?: string;
 
-    // @ApiProperty({
-    //     example: 'user',
-    //     required: false
-    // })
-    // @IsOptional()
-    // phoneNumber: number;
+  @ApiProperty({})
+  @IsOptional()
+  pricePerPost?: number;
 
-    @ApiProperty({
-        example: 'user',
-        required: false
-    })
-    @IsOptional()
-    password: string;
+  @ApiProperty({})
+  @IsOptional()
+  fullName?: string;
 
-    // @ApiProperty({
-    //     example: 'user',
-    //     required: false
-    // })
-    // @IsOptional()
-    // wallets: BlockchainWallet;
+  @ApiProperty({})
+  @IsOptional()
+  email?: string;
 
-    // @ApiProperty({
-    //     example: 'user',
-    //     required: false
-    // })
-    // @IsOptional()
-    // socialProfiles: SocialNetwork;
+  @ApiProperty({})
+  @IsOptional()
+  phoneNumber?: number;
 
-    // @Column({ default: '' })
-    // avatar: string;
+  @ApiProperty({})
+  @IsOptional()
+  bio?: string;
 
-    // @Column({ default: '' })
-    // bio: string;
+  @ApiProperty({})
+  @IsOptional()
+  dob?: string;
 
-    // @Column({ default: '' })
-    // coverImage: string;
+  @ApiProperty({})
+  @IsOptional()
+  gender?: string;
 
-    // @Column({ default: '' })
-    // dob: string;
-
-    // @Column({ default: '' })
-    // gender: string;
-
-    // @Column({ default: '' })
-    // country: string;
+  @ApiProperty({})
+  @IsOptional()
+  location?: string;
 }

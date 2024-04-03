@@ -25,6 +25,9 @@ import { verifySignature } from 'src/utils/verify-signature/solana-signature';
 import { generateId } from 'src/utils/helper';
 import { ObjectId } from 'mongodb';
 import { TwitterUsers } from './entities/twitter-user.entity';
+import { CreateUserExperienceDto, UpdateUserExperienceDto } from './dto/request/experience.dto';
+import { UserExperiences } from './entities/experience.entity';
+import { UpdateUserDto } from './dto/request/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -33,6 +36,7 @@ export class UserService {
     @Inject(forwardRef(() => TwitterService))
     private readonly twitterService: TwitterService,
     @InjectRepository(User) private userRep: Repository<User>,
+    @InjectRepository(UserExperiences) private userExperienceRep: Repository<UserExperiences>,
     @InjectRepository(TwitterUsers) private twitterUsersRep: Repository<TwitterUsers>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
@@ -64,6 +68,7 @@ export class UserService {
     const userResponse: UserResponseDto[] = await Promise.all(
       users.map(async (user) => {
         const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
+        const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
         const { password, _id, ...userData } = user;
         userData.twitterInfo = {
           twitterPoints: twitterUser.twitterPoints,
@@ -78,6 +83,8 @@ export class UserService {
           numberOfTweets: twitterUser.numberOfTweets,
           creationDate: twitterUser.creationDate
         };
+        userData.experience = userExperience;
+
         return userData;
       })
     );
@@ -203,6 +210,7 @@ export class UserService {
       throw new NotFoundException(`User with ID ${userId} not found.`);
     }
     const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
+    const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
     const { password, _id, ...userData } = user;
     userData.twitterInfo = {
       twitterPoints: twitterUser.twitterPoints,
@@ -217,6 +225,7 @@ export class UserService {
       numberOfTweets: twitterUser.numberOfTweets,
       creationDate: twitterUser.creationDate
     };
+    userData.experience = userExperience;
     return userData;
   }
 
@@ -230,6 +239,7 @@ export class UserService {
       throw new NotFoundException(`User with username ${username} not found.`);
     }
     const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
+    const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
     const { password, _id, ...userData } = user;
     userData.twitterInfo = {
       twitterPoints: twitterUser.twitterPoints,
@@ -244,6 +254,7 @@ export class UserService {
       numberOfTweets: twitterUser.numberOfTweets,
       creationDate: twitterUser.creationDate
     };
+    userData.experience = userExperience;
 
     let userTweet = [];
     const usernameTwitter = user.socialProfiles.find((social) => social.social === 'twitter');
@@ -266,6 +277,7 @@ export class UserService {
       throw new NotFoundException(`User with username ${username} not found.`);
     }
     const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
+    const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
     const { password, _id, ...userData } = user;
     userData.twitterInfo = {
       twitterPoints: twitterUser.twitterPoints,
@@ -280,6 +292,7 @@ export class UserService {
       numberOfTweets: twitterUser.numberOfTweets,
       creationDate: twitterUser.creationDate
     };
+    userData.experience = userExperience;
     return userData;
   }
 
@@ -397,7 +410,7 @@ export class UserService {
       creationDate: twUser?.creation_date
     };
     const saveTwitterUser = this.twitterUsersRep.create(twitterUserCreated);
-    await Promise.all([this.userRep.create(saveUser), this.twitterUsersRep.save(saveTwitterUser)]);
+    await Promise.all([this.userRep.save(saveUser), this.twitterUsersRep.save(saveTwitterUser)]);
 
     delete saveUser.password;
     delete saveUser._id;
@@ -425,10 +438,31 @@ export class UserService {
     return users;
   }
 
-  async updateProfileByUser(userId: string, request: UpdateUserByAdminDto): Promise<UserResponseDto> {
-    const { role } = request;
+  async updateProfileByUser(userId: string, request: UpdateUserDto): Promise<UserResponseDto> {
+    const {
+      type,
+      jobTitle,
+      //organization,
+      pricePerPost,
+      fullName,
+      email,
+      phoneNumber,
+      bio,
+      dob,
+      gender,
+      location
+    } = request;
     let users = await this.findByUserId(userId);
-    if (role) users.role = role;
+    if (type) users.type = type;
+    if (jobTitle) users.jobTitle = jobTitle;
+    if (pricePerPost) users.pricePerPost = pricePerPost;
+    if (fullName) users.fullName = fullName;
+    if (email) users.email = email;
+    if (phoneNumber) users.phoneNumber = phoneNumber;
+    if (bio) users.bio = bio;
+    if (dob) users.dob = dob;
+    if (gender) users.gender = gender;
+    if (location) users.location = location;
     await this.userRep.save(users);
     return users;
   }
@@ -535,4 +569,99 @@ export class UserService {
   // }
 
   // async updateUser(userId: string, request: )
+
+  async createUserExperience(userId: string, request: CreateUserExperienceDto) {
+    const {
+      title,
+      employmentType,
+      companyName,
+      location,
+      locationType,
+      currentlyWorking,
+      startDate,
+      endDate,
+      industry,
+      description,
+      media,
+      projectName,
+      skill
+    } = request;
+    const userExCreated = {
+      userExperienceId: generateId(),
+      userId,
+      title,
+      employmentType,
+      companyName,
+      location,
+      locationType,
+      currentlyWorking,
+      startDate,
+      endDate,
+      industry,
+      description,
+      media,
+      projectName,
+      skill
+    };
+    const saveUserEx = this.userExperienceRep.create(userExCreated);
+    await this.userExperienceRep.save(saveUserEx);
+
+    return saveUserEx;
+  }
+
+  async findUserExperienceByUserId(userId: string) {
+    const userEx = await this.userExperienceRep.find({
+      where: {
+        userId
+      }
+    });
+    return userEx;
+  }
+
+  async findUserExperienceByUserExId(userExId: string) {
+    const userEx = await this.userExperienceRep.findOne({
+      where: {
+        userExperienceId: userExId
+      }
+    });
+    if (!userEx) {
+      throw new NotFoundException(`User Experience with ID ${userEx} not found.`);
+    }
+    return userEx;
+  }
+
+  async updateUserExperience(userId: string, userExId: string, request: UpdateUserExperienceDto) {
+    const {
+      title,
+      employmentType,
+      companyName,
+      location,
+      locationType,
+      currentlyWorking,
+      startDate,
+      endDate,
+      industry,
+      description,
+      media,
+      projectName,
+      skill
+    } = request;
+    let userEx = await this.findUserExperienceByUserExId(userExId);
+    if (userId !== userEx.userId) throw new BadRequestException('Permission Error!');
+    if (title) userEx.title = title;
+    if (employmentType) userEx.employmentType = employmentType;
+    if (companyName) userEx.companyName = companyName;
+    if (location) userEx.location = location;
+    if (locationType) userEx.locationType = locationType;
+    if (currentlyWorking) userEx.currentlyWorking = currentlyWorking;
+    if (startDate) userEx.startDate = startDate;
+    if (endDate) userEx.endDate = endDate;
+    if (industry) userEx.industry = industry;
+    if (description) userEx.description = description;
+    if (media) userEx.media = media;
+    if (projectName) userEx.projectName = projectName;
+    if (skill) userEx.skill = skill;
+    await this.userExperienceRep.save(userEx);
+    return userEx;
+  }
 }

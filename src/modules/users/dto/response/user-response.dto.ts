@@ -2,8 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
 import { ArrayMinSize, IsArray, IsNotEmpty, IsString, IsNumber, ValidateNested, IsObject } from 'class-validator';
 import { Column, ObjectId } from 'typeorm';
-import { BlockchainWallet, SocialNetwork, UserExperience } from '../../entities/user.entity';
+import { BlockchainWallet, SocialNetwork } from '../../entities/user.entity';
 import { ResponseDto } from '@common/interceptors/success-response.dto';
+import { UserExperiences } from '../../entities/experience.entity';
 
 export abstract class UserResponseDto {
   @ApiProperty({})
@@ -64,7 +65,7 @@ export abstract class UserResponseDto {
     example: [{}],
     description: "A list of the user's experience (format may vary)"
   })
-  experience?: UserExperience[];
+  experience?: any[];
 
   @ApiProperty({
     example: 1000,

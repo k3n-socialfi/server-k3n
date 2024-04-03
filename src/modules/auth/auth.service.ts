@@ -77,8 +77,10 @@ export class AuthService {
     const { id, username } = req;
 
     const userExists = await this.usersService.findByTwitterId(id);
+    console.log('userExists:', userExists);
     if (userExists) {
       const tokens = await this.getTokens(userExists.userId, userExists.username, userExists.role);
+      console.log('tokens:', tokens);
       return {
         user: userExists,
         accessToken: tokens.accessToken,

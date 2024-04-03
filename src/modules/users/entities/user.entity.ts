@@ -12,11 +12,6 @@ export class SocialNetwork {
   username: string;
 }
 
-export class UserExperience {
-  time: string;
-  campaign: string;
-  role: string;
-}
 @Entity('users')
 export class User extends AbstractEntity {
   // @ObjectIdColumn({ name: '_id' })
@@ -41,7 +36,7 @@ export class User extends AbstractEntity {
   organization: string;
 
   @Column({ nullable: true, default: [] })
-  experience: UserExperience[];
+  experience: any[];
 
   @Column({ nullable: true, default: null })
   pricePerPost: number;
@@ -108,7 +103,7 @@ export class User extends AbstractEntity {
     if (!this.type) this.type = null;
     if (!this.jobTitle) this.jobTitle = null;
     if (!this.organization) this.organization = null;
-    if (!this.experience) this.experience = [];
+    // if (!this.experience) this.experience = [];
     if (!this.fullName) this.fullName = null;
     if (!this.email) this.email = null;
     if (!this.phoneNumber) this.phoneNumber = null;
