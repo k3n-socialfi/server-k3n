@@ -31,19 +31,19 @@ export class OauthController {
     );
   }
 
-  @Get('google')
-  @UseGuards(GoogleOauthGuard)
-  async googleAuth(@Req() _req) {
-    // Guard redirects
-  }
+  // @Get('google')
+  // @UseGuards(GoogleOauthGuard)
+  // async googleAuth(@Req() _req) {
+  //   // Guard redirects
+  // }
 
-  @Get('google/callback')
-  @UseGuards(GoogleOauthGuard)
-  async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
-    // For now, we'll just show the user object
+  // @Get('google/callback')
+  // @UseGuards(GoogleOauthGuard)
+  // async googleAuthRedirect(@Req() req: Request, @Res() res: Response) {
+  //   // For now, we'll just show the user object
 
-    console.log('req:', req.user);
-    // res.redirect('/profile');
-    // return {}
-  }
+  //   console.log('req:', req.user);
+  //   // res.redirect('/profile');
+  //   // return {}
+  // }
 }

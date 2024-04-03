@@ -212,6 +212,9 @@ export class LoginUserResponseDto {
         `
   })
   refreshToken: string;
+
+  @ApiProperty()
+  isNew: boolean;
 }
 
 export class UserListResponseDto {

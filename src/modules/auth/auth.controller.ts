@@ -17,35 +17,35 @@ import { SwaggerUserResponseDto } from '../users/dto/response/swagger-response.d
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('signup')
-  @ApiResponse({
-    description: 'Sigup successful',
-    type: SwaggerUserResponseDto
-  })
-  async signup(@Body() createUserDto: CreateUserDto) {
-    return {
-      code: 201,
-      message: 'Sigup successful',
-      data: await this.authService.signUp(createUserDto)
-    };
-  }
+  // @Post('signup')
+  // @ApiResponse({
+  //   description: 'Sigup successful',
+  //   type: SwaggerUserResponseDto
+  // })
+  // async signup(@Body() createUserDto: CreateUserDto) {
+  //   return {
+  //     code: 201,
+  //     message: 'Sigup successful',
+  //     data: await this.authService.signUp(createUserDto)
+  //   };
+  // }
 
-  @Post('signin')
-  @ApiResponse({
-    description: 'Signin successful',
-    type: SwaggerUserResponseDto
-  })
-  @ApiResponse({
-    description: 'Respond',
-    type: ResponseDto<UserResponseDto>
-  })
-  async signIn(@Body() request: LoginUserDto) {
-    return {
-      code: 200,
-      message: 'Sigin successful',
-      data: await this.authService.signIn(request)
-    };
-  }
+  // @Post('signin')
+  // @ApiResponse({
+  //   description: 'Signin successful',
+  //   type: SwaggerUserResponseDto
+  // })
+  // @ApiResponse({
+  //   description: 'Respond',
+  //   type: ResponseDto<UserResponseDto>
+  // })
+  // async signIn(@Body() request: LoginUserDto) {
+  //   return {
+  //     code: 200,
+  //     message: 'Sigin successful',
+  //     data: await this.authService.signIn(request)
+  //   };
+  // }
 
   // @UseGuards(RefreshTokenGuard)
   // @Get('refresh')
@@ -82,7 +82,7 @@ export class AuthController {
   async loginWallet(@Body() request: LoginSolanaDto) {
     return {
       code: 200,
-      message: 'Login successful',
+      message: 'Verify successful',
       data: await this.authService.loginSolana(request)
     };
   }

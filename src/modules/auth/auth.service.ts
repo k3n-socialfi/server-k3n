@@ -50,25 +50,32 @@ export class AuthService {
     if (userExists) {
       const tokens = await this.getTokens(userExists.userId, userExists.username, userExists.role);
       return {
+        isNew: false,
         user: userExists,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken
       };
     } else {
       // Hash password
-      const password = randomString(10);
-      const username = getRandomUsernameWithNumber();
-      const hash = await this.hashData(password);
-      const newUser = await this.usersService.createUserWithWallet({
-        username,
-        address,
-        password: hash
-      });
-      const tokens = await this.getTokens(newUser.userId, newUser.username, newUser.role);
+      // const password = randomString(10);
+      // const username = getRandomUsernameWithNumber();
+      // const hash = await this.hashData(password);
+      // const newUser = await this.usersService.createUserWithWallet({
+      //   username,
+      //   address,
+      //   password: hash
+      // });
+      // const tokens = await this.getTokens(newUser.userId, newUser.username, newUser.role);
+      // return {
+      //   user: newUser,
+      //   accessToken: tokens.accessToken,
+      //   refreshToken: tokens.refreshToken
+      // };
       return {
-        user: newUser,
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken
+        isNew: true,
+        user: null,
+        accessToken: null,
+        refreshToken: null
       };
     }
   }
@@ -82,6 +89,7 @@ export class AuthService {
       const tokens = await this.getTokens(userExists.userId, userExists.username, userExists.role);
       console.log('tokens:', tokens);
       return {
+        isNew: false,
         user: userExists,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken
@@ -100,6 +108,7 @@ export class AuthService {
       });
       const tokens = await this.getTokens(newUser.userId, newUser.username, newUser.role);
       return {
+        isNew: true,
         user: newUser,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken
@@ -122,6 +131,7 @@ export class AuthService {
     });
     const tokens = await this.getTokens(newUser.userId, newUser.username, newUser.role);
     return {
+      isNew: true,
       user: newUser,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken
@@ -137,6 +147,7 @@ export class AuthService {
     const tokens = await this.getTokens(user.userId, user.username, user.role);
     const { password, _id, ...userData } = user;
     return {
+      isNew: false,
       user: userData,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken

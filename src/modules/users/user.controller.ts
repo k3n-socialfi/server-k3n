@@ -177,19 +177,19 @@ export class UserController {
   // }
 
   // For Admin
-  @Post('create')
-  @ApiCreatedResponse({
-    description: 'Create user by admin response',
-    type: SwaggerCreateUserByAdminResponseDto
-  })
-  @UseGuards(AccessTokenGuard, RolesGuard)
-  public async createUser(@Body() request: CreateUserByAdminDto) {
-    return {
-      code: 201,
-      message: 'Create user by id successful',
-      data: await this.userService.createUser(request)
-    };
-  }
+  // @Post('create')
+  // @ApiCreatedResponse({
+  //   description: 'Create user by admin response',
+  //   type: SwaggerCreateUserByAdminResponseDto
+  // })
+  // @UseGuards(AccessTokenGuard, RolesGuard)
+  // public async createUser(@Body() request: CreateUserByAdminDto) {
+  //   return {
+  //     code: 201,
+  //     message: 'Create user by id successful',
+  //     data: await this.userService.createUser(request)
+  //   };
+  // }
 
   @Put('profile/update')
   @ApiResponse({
