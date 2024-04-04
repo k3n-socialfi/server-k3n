@@ -267,14 +267,16 @@ export class UserService {
     };
     userData.experience = userExperience;
 
-    let userTweet = [];
-    const usernameTwitter = user.socialProfiles.find((social) => social.social === 'twitter');
-    if (usernameTwitter) {
-      userTweet = await this.twitterService.getUserTweets({ username: usernameTwitter.username });
-    }
+    // let userTweet = [];
+    // const usernameTwitter = user.socialProfiles.find((social) => social.social === 'twitter');
+    // if (usernameTwitter) {
+    //   userTweet = await this.twitterService.getUserTweets({ username: usernameTwitter.username });
+    // }
+    let userTweet = await this.twitterService.getUserTweets({ username });
+    if (!userTweet) userTweet = [];
     return {
       ...userData,
-      posts: userTweet
+      posts: userTweet.slice(0, 4)
     };
   }
 

@@ -60,34 +60,34 @@ export class TwitterService {
         await this.twitterUsersRep.save(twitterUsers[i]);
       }
 
-      const batchSize = 1;
-      const batches = [];
-      for (let i = 0; i < twitterUsers.length; i += batchSize) {
-        batches.push(twitterUsers.slice(i, i + batchSize));
-      }
-      batches.map(async (batch) => {
-        await Promise.all(
-          batch.map(async (user) => {
-            const twPoints = await this.getUserTweetPoints(user.username);
-            let twitterPoints =
-              twPoints.allTweets.totalFavoriteCount +
-              twPoints.allTweets.totalRetweetCount * 2 +
-              twPoints.allTweets.totalReplyCount * 2 +
-              twPoints.allTweets.totalQuoteCount * 3 +
-              twPoints.allTweets.totalViews +
-              twPoints.latestTweet.favoriteCount +
-              twPoints.latestTweet.retweetCount * 2 +
-              twPoints.latestTweet.replyCount * 2 +
-              twPoints.latestTweet.quoteCount * 3 +
-              twPoints.latestTweet.views;
-            // const royaltyPoints = user.royaltyPoints;
+      // const batchSize = 1;
+      // const batches = [];
+      // for (let i = 0; i < twitterUsers.length; i += batchSize) {
+      //   batches.push(twitterUsers.slice(i, i + batchSize));
+      // }
+      // batches.map(async (batch) => {
+      //   await Promise.all(
+      //     batch.map(async (user) => {
+      //       const twPoints = await this.getUserTweetPoints(user.username);
+      //       let twitterPoints =
+      //         twPoints.allTweets.totalFavoriteCount +
+      //         twPoints.allTweets.totalRetweetCount * 2 +
+      //         twPoints.allTweets.totalReplyCount * 2 +
+      //         twPoints.allTweets.totalQuoteCount * 3 +
+      //         twPoints.allTweets.totalViews +
+      //         twPoints.latestTweet.favoriteCount +
+      //         twPoints.latestTweet.retweetCount * 2 +
+      //         twPoints.latestTweet.replyCount * 2 +
+      //         twPoints.latestTweet.quoteCount * 3 +
+      //         twPoints.latestTweet.views;
+      //       // const royaltyPoints = user.royaltyPoints;
 
-            user.twitterPoints = twitterPoints;
+      //       user.twitterPoints = twitterPoints;
 
-            await this.twitterUsersRep.save(user);
-          })
-        );
-      });
+      //       await this.twitterUsersRep.save(user);
+      //     })
+      //   );
+      // });
       console.log('Running transaction job is done !');
     } catch (err) {
       console.log('err:', err);
@@ -269,7 +269,8 @@ export class TwitterService {
 
   async getUserTweetPoints({ username, time }: { username: string; time?: string }) {
     const nowMs = Date.now();
-    const tweets = await this.getUserTweets({ username, limit: 20, includePinned: true, includeReplies: false });
+    let tweets = await this.getUserTweets({ username, limit: 20, includePinned: true, includeReplies: false });
+    if (!tweets) tweets = [];
     let totalFavoriteCount = 0;
     let totalRetweetCount = 0;
     let totalReplyCount = 0;
