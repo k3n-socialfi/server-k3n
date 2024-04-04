@@ -520,7 +520,8 @@ export class UserService {
   }
 
   async connectWalletSolana(username: string, address: string, signature: string) {
-    const message = await this.cacheManager.get(`${address}`);
+    const message = await this.cacheManager.get(`${address.toLowerCase()}`);
+    if (!message) throw new NotFoundException('Sign message not found!. Please try again');
     const verified = verifySignature(message.toString(), signature, address);
     if (!verified) throw new ForbiddenException('Access Denied');
     let [userExists, user] = await Promise.all([
@@ -532,12 +533,12 @@ export class UserService {
       })
     ]);
     if (userExists) {
-      throw new BadRequestException('Twitter already connect another account');
+      throw new BadRequestException('Address already connect another account');
     } else {
       const wallet = new BlockchainWallet();
       wallet.chainId = 1;
       wallet.address = address.toLowerCase();
-      if (user.socialProfiles) {
+      if (user.wallets) {
         user.wallets.push(wallet);
       } else {
         user.wallets = [wallet];
