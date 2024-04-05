@@ -48,7 +48,7 @@ export function verifySignature(message: string, signature: string, address: str
     const input: SolanaSignInInputWithRequiredFields = {
       address: publicKey.toBase58(),
       domain: hostName,
-      resources: [hostName],
+      resources: [domain.origin],
       statement: parse.statement,
       version: parse.version,
       chainId: parse.chainId,
