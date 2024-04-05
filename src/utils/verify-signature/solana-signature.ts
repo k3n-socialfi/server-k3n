@@ -74,7 +74,7 @@ export async function getMessageSolana(address) {
   const expireTime = nowMs + 15 * 60 * 1000;
 
   const message = {
-    domain: 'http://localhost:3000',
+    domain: 'https://client-k3n.vercel.app',
     address, // address of signer
     statement:
       'Clicking Sign or Approve only means you have proved this wallet is owned by you. This request will not trigger any blockchain transaction or cost any gas fee.',
@@ -84,7 +84,7 @@ export async function getMessageSolana(address) {
     nonce,
     issuedAt: new Date(nowMs).toISOString(),
     expirationTime: new Date(expireTime).toISOString(),
-    resources: ['http://localhost:3000']
+    resources: ['https://client-k3n.vercel.app']
   };
   return JSON.stringify(message);
 }

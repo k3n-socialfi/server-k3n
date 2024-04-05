@@ -8,7 +8,7 @@ export enum JwtType {
   Refresh
 }
 
-export const enum Role {
+export enum Role {
   User = 'user',
   Admin = 'admin'
 }

@@ -12,6 +12,13 @@ export class SocialNetwork {
   username: string;
 }
 
+export enum UserType {
+  Caller = 'Caller',
+  Influencer = 'Influencer',
+  Researcher = 'Researcher',
+  Threador = 'Threador'
+}
+
 @Entity('users')
 export class User extends AbstractEntity {
   // @ObjectIdColumn({ name: '_id' })

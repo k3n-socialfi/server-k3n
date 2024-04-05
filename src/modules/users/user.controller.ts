@@ -215,7 +215,7 @@ export class UserController {
     const userObject = JSON.parse(JSON.stringify(req.user));
     return {
       code: 201,
-      message: 'Update user by admin successful',
+      message: 'Update user successful',
       data: await this.userService.updateProfileByUser(userObject.sub, request)
     };
   }
@@ -241,7 +241,7 @@ export class UserController {
     const userObject = JSON.parse(JSON.stringify(req.user));
     return {
       code: 201,
-      message: 'Update user by admin successful',
+      message: 'Connect twitter successful',
       data: await this.userService.connectTwitter(userObject?.username, request.tweetId)
     };
   }
@@ -252,7 +252,7 @@ export class UserController {
     const userObject = JSON.parse(JSON.stringify(req.user));
     return {
       code: 201,
-      message: 'Update user by admin successful',
+      message: 'Connect wallet successful',
       data: await this.userService.connectWalletSolana(userObject?.username, request.address, request.signature)
     };
   }

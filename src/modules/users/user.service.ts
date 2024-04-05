@@ -53,6 +53,18 @@ export class UserService {
     if (query.role) {
       whereConditions.role = query.role;
     }
+
+    if (query.type) {
+      whereConditions.type = query.type;
+    }
+
+    if (query.lowerLimit) {
+      whereConditions.lowerLimit = query.lowerLimit;
+    }
+
+    if (query.upperLimit) {
+      whereConditions.upperLimit = query.upperLimit;
+    }
     const [users, totalCount] = await Promise.all([
       this.userRep.find({
         where: whereConditions,
@@ -68,6 +80,11 @@ export class UserService {
     const userResponse: UserResponseDto[] = await Promise.all(
       users.map(async (user) => {
         const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
+        // if (
+        //   twitterUser.followers < lowerLimit ||
+        //   (twitterUser.followers > upperLimit || twitterUser.verificationStatus)
+        // )
+        // return;
         const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
         const { password, _id, ...userData } = user;
         userData.twitterInfo = {
