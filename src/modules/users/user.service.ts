@@ -58,13 +58,13 @@ export class UserService {
       whereConditions.type = query.type;
     }
 
-    if (query.lowerLimit) {
-      whereConditions.lowerLimit = query.lowerLimit;
-    }
+    // if (query.lowerLimit) {
+    //   whereConditions.lowerLimit = query.lowerLimit;
+    // }
 
-    if (query.upperLimit) {
-      whereConditions.upperLimit = query.upperLimit;
-    }
+    // if (query.upperLimit) {
+    //   whereConditions.upperLimit = query.upperLimit;
+    // }
     const [users, totalCount] = await Promise.all([
       this.userRep.find({
         where: whereConditions,

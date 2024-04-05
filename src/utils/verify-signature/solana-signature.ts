@@ -95,7 +95,7 @@ export async function validateSolanaAddress(address: string) {
   try {
     publicKey = new PublicKey(address);
     console.log('publicKey:', publicKey);
-    return await PublicKey.isOnCurve(publicKey.toBytes());
+    return PublicKey.isOnCurve(publicKey.toBytes());
   } catch (err) {
     console.log('err:', err);
     return false;
