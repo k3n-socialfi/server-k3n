@@ -93,7 +93,7 @@ export class TwitterService {
       console.log('err:', err);
     }
   }
-  async findTwitterUsersByUsername(username: string): Promise<TwitterUserDetailResponseDto> {
+  async findTwitterUsersByUsername(username: string) {
     try {
       const headers = this.configService.get('rapidApi');
       const call = this.httpService

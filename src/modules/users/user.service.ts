@@ -10,7 +10,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BlockchainWallet, SocialNetwork, User } from './entities/user.entity';
+import { BlockchainWallet, SocialNetwork, User, UserType } from './entities/user.entity';
 import { CreateUserByAdminDto, CreateUserWithTwitterDto, CreateUserWithWalletDto } from './dto/request/create-user.dto';
 import { ErrorsCodes, ErrorsMap } from '@common/constants/respond-errors';
 import { InternalUserResponseDto, UserListResponseDto, UserResponseDto } from './dto/response/user-response.dto';
@@ -28,6 +28,7 @@ import { TwitterUsers } from './entities/twitter-user.entity';
 import { CreateUserExperienceDto, UpdateUserExperienceDto } from './dto/request/experience.dto';
 import { UserExperiences } from './entities/experience.entity';
 import { UpdateUserDto } from './dto/request/update-user.dto';
+import { Timeout } from '@nestjs/schedule';
 
 @Injectable()
 export class UserService {
@@ -41,6 +42,72 @@ export class UserService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
+
+  // @Timeout(0)
+  async initUser() {
+    console.log('Start run user init job !');
+    const listUser = [];
+    for (let i = 0; i < listUser.length; i++) {
+      console.log('i:', i);
+      console.log('listUser[i]:', listUser[i]);
+      const twUser = await this.twitterService.findTwitterUsersByUsername(listUser[i]);
+      const userTypes = Object.values(UserType);
+      const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
+      const jobTile = [
+        'Blockchain Developer',
+        'FrontEnd Developer',
+        'Backend Developer',
+        'Freelance',
+        'FullStack Developer',
+        'Data Engineer',
+        'KOLs',
+        'Producer Manager',
+        'CEO',
+        'CMO',
+        'Co-Founder',
+        'Marketing Manager',
+        'Marketing',
+        'Community Manager'
+      ];
+      const randomJob = Math.floor(Math.random() * jobTile.length);
+      const social = new SocialNetwork();
+      social.social = 'twitter';
+      social.username = listUser[i];
+      const userCreated = {
+        userId: twUser.user_id,
+        username: twUser.username,
+        password: null,
+        fullName: twUser?.name,
+        avatar: twUser?.profile_pic_url,
+        coverImage: twUser?.profile_banner_url,
+        bio: twUser?.description,
+        role: Role.User,
+        socialProfiles: [social],
+        type: randomUserType,
+        jobTitle: jobTile[randomJob]
+      };
+      const saveUser = this.userRep.create(userCreated);
+
+      const twitterUserCreated = {
+        userId: twUser.user_id,
+        username: twUser.username,
+        fullName: twUser?.name,
+        avatar: twUser?.profile_pic_url,
+        coverImage: twUser?.profile_banner_url,
+        bio: twUser?.description,
+        verificationStatus: twUser?.is_blue_verified,
+        followers: twUser?.follower_count,
+        following: twUser?.following_count,
+        externalUrl: twUser?.external_url,
+        numberOfTweets: twUser?.number_of_tweets,
+        creationDate: twUser?.creation_date
+      };
+      const saveTwitterUser = this.twitterUsersRep.create(twitterUserCreated);
+
+      await Promise.all([this.userRep.save(saveUser), this.twitterUsersRep.save(saveTwitterUser)]);
+    }
+    console.log('End run user init job !');
+  }
   async findAllUsers(query: RequestUserQuery): Promise<UserListResponseDto> {
     const skip = (query.page - 1) * query.limit;
 
@@ -237,24 +304,28 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found.`);
     }
-    const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
-    const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
-    const { password, _id, ...userData } = user;
-    userData.twitterInfo = {
-      twitterPoints: twitterUser.twitterPoints,
-      royaltyPoints: twitterUser.royaltyPoints,
-      totalPoints: twitterUser.totalPoints,
-      avatar: twitterUser.avatar,
-      coverImage: twitterUser.coverImage,
-      verificationStatus: twitterUser.verificationStatus,
-      followers: twitterUser.followers,
-      following: twitterUser.following,
-      externalUrl: twitterUser.externalUrl,
-      numberOfTweets: twitterUser.numberOfTweets,
-      creationDate: twitterUser.creationDate
-    };
-    userData.experience = userExperience;
-    return userData;
+    try {
+      const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
+      const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
+      const { password, _id, ...userData } = user;
+      userData.twitterInfo = {
+        twitterPoints: twitterUser.twitterPoints,
+        royaltyPoints: twitterUser.royaltyPoints,
+        totalPoints: twitterUser.totalPoints,
+        avatar: twitterUser.avatar,
+        coverImage: twitterUser.coverImage,
+        verificationStatus: twitterUser.verificationStatus,
+        followers: twitterUser.followers,
+        following: twitterUser.following,
+        externalUrl: twitterUser.externalUrl,
+        numberOfTweets: twitterUser.numberOfTweets,
+        creationDate: twitterUser.creationDate
+      };
+      userData.experience = userExperience;
+      return userData;
+    } catch (err) {
+      console.log('err:', err);
+    }
   }
 
   async findProfileByUsername(username: string) {
@@ -440,6 +511,7 @@ export class UserService {
       creationDate: twUser?.creation_date
     };
     const saveTwitterUser = this.twitterUsersRep.create(twitterUserCreated);
+
     await Promise.all([this.userRep.save(saveUser), this.twitterUsersRep.save(saveTwitterUser)]);
 
     delete saveUser.password;
@@ -483,6 +555,7 @@ export class UserService {
       location
     } = request;
     let users = await this.findByUserId(userId);
+
     if (type) users.type = type;
     if (jobTitle) users.jobTitle = jobTitle;
     if (pricePerPost) users.pricePerPost = pricePerPost;
@@ -493,7 +566,8 @@ export class UserService {
     if (dob) users.dob = dob;
     if (gender) users.gender = gender;
     if (location) users.location = location;
-    await this.userRep.save(users);
+    const { twitterInfo, experience, ...saveDate } = users;
+    await this.userRep.update({ userId }, saveDate);
     return users;
   }
 
