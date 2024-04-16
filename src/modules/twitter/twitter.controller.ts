@@ -76,6 +76,21 @@ export class TwitterController {
     };
   }
 
+  @Get('user/recent-tweets')
+  public async getRecentUserTweets(@Query(new ValidationPipe({ transform: true })) query: RequestUserTweetQuery) {
+    return {
+      code: 200,
+      message: "Get user's tweets successful",
+      data: await this.twitterService.getRecentUserTweets({
+        username: query.username,
+        userId: query.userId,
+        limit: query.limit,
+        includePinned: query.includePinned,
+        includeReplies: query.includeReplies
+      })
+    };
+  }
+
   @Get('points/:username')
   public async getUserTweetsPoints(@Param('username') username: string) {
     return {

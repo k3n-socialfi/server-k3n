@@ -21,6 +21,8 @@ import { TwPoints } from './entities/twitter-points.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TwitterUsers } from '../users/entities/twitter-user.entity';
+import { CreateTwitterPortfolioDto } from './dto/request/create-portfolio';
+import { TwitterPortfolio } from './entities/portfolio.entity';
 
 @Injectable()
 export class TwitterService {
@@ -30,6 +32,7 @@ export class TwitterService {
     @Inject(forwardRef(() => UserService))
     private userService: UserService,
     @InjectRepository(TwPoints) private twitterPointRep: Repository<TwPoints>,
+    @InjectRepository(TwitterPortfolio) private twitterPortfolioRep: Repository<TwitterPortfolio>,
     @InjectRepository(TwitterUsers) private twitterUsersRep: Repository<TwitterUsers>,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
@@ -39,26 +42,11 @@ export class TwitterService {
   async TwitterJob() {
     try {
       console.log('Start run twitter job !');
-      const twitterUsers = await this.twitterUsersRep.find();
-      for (let i = 0; i < twitterUsers.length; i++) {
-        const twPoints = await this.getUserTweetPoints({ username: twitterUsers[i].username });
-        let twitterPoints =
-          twPoints.allTweets.totalFavoriteCount +
-          twPoints.allTweets.totalRetweetCount * 2 +
-          twPoints.allTweets.totalReplyCount * 2 +
-          twPoints.allTweets.totalQuoteCount * 3 +
-          twPoints.allTweets.totalViews +
-          twPoints.latestTweet.favoriteCount +
-          twPoints.latestTweet.retweetCount * 2 +
-          twPoints.latestTweet.replyCount * 2 +
-          twPoints.latestTweet.quoteCount * 3 +
-          twPoints.latestTweet.views;
-        // const royaltyPoints = user.royaltyPoints;
 
-        twitterUsers[i].twitterPoints = twitterPoints;
+      // Get points
+      await this.twitterPointsCalculation();
 
-        await this.twitterUsersRep.save(twitterUsers[i]);
-      }
+      // Create User's Portfolio
 
       // const batchSize = 1;
       // const batches = [];
@@ -91,6 +79,29 @@ export class TwitterService {
       console.log('Running transaction job is done !');
     } catch (err) {
       console.log('err:', err);
+    }
+  }
+
+  async twitterPointsCalculation() {
+    const twitterUsers = await this.twitterUsersRep.find();
+    for (let i = 0; i < twitterUsers.length; i++) {
+      const twPoints = await this.getUserTweetPoints({ username: twitterUsers[i].username });
+      let twitterPoints =
+        twPoints.allTweets.totalFavoriteCount +
+        twPoints.allTweets.totalRetweetCount * 2 +
+        twPoints.allTweets.totalReplyCount * 2 +
+        twPoints.allTweets.totalQuoteCount * 3 +
+        twPoints.allTweets.totalViews +
+        twPoints.latestTweet.favoriteCount +
+        twPoints.latestTweet.retweetCount * 2 +
+        twPoints.latestTweet.replyCount * 2 +
+        twPoints.latestTweet.quoteCount * 3 +
+        twPoints.latestTweet.views;
+      // const royaltyPoints = user.royaltyPoints;
+
+      twitterUsers[i].twitterPoints = twitterPoints;
+
+      await this.twitterUsersRep.save(twitterUsers[i]);
     }
   }
   async findTwitterUsersByUsername(username: string) {
@@ -263,7 +274,57 @@ export class TwitterService {
       })
       .toPromise();
 
-    const res = (await call)?.data?.results;
+    const res = (await call)?.data;
+    return res;
+  }
+
+  async getUserTweetsContinuation({
+    continuationToken,
+    username,
+    userId,
+    limit,
+    includeReplies,
+    includePinned
+  }: {
+    continuationToken: string;
+    username?: string;
+    userId?: string;
+    limit?: number;
+    includeReplies?: boolean;
+    includePinned?: boolean;
+  }) {
+    const headers = this.configService.get('rapidApi');
+    const url = new URL(RapidApiEndpoints.USER_TWEETS_CONTINUATION);
+
+    url.searchParams.append('continuation_token', continuationToken);
+
+    if (username) {
+      url.searchParams.append('username', username);
+    }
+
+    if (limit) {
+      url.searchParams.append('limit', limit.toString());
+    }
+
+    if (userId) {
+      url.searchParams.append('user_id', userId);
+    }
+
+    if (includeReplies !== undefined) {
+      url.searchParams.append('include_replies', includeReplies.toString());
+    }
+
+    if (includePinned !== undefined) {
+      url.searchParams.append('include_pinned', includePinned.toString());
+    }
+    console.log('url.toString():', url.toString());
+    const call = this.httpService
+      .get(url.toString(), {
+        headers
+      })
+      .toPromise();
+
+    const res = (await call)?.data;
     return res;
   }
 
@@ -276,7 +337,7 @@ export class TwitterService {
     let totalReplyCount = 0;
     let totalQuoteCount = 0;
     let totalViews = 0;
-    tweets.map((tweet: any) => {
+    tweets.results.map((tweet: any) => {
       const tweetTime = new Date(tweet.creation_date);
       if (time) {
         const intervalTime = IntervalTime[time];
@@ -320,7 +381,7 @@ export class TwitterService {
     let threeDays: TwitterPoints;
     let sevenDays: TwitterPoints;
     let allTweets: TwitterPoints;
-    tweets.map((tweet: any) => {
+    tweets.results.map((tweet: any) => {
       const tweetTime = new Date(tweet.creation_date);
 
       if (tweetTime.getTime() >= nowMs - IntervalTime['1d'] * 1000) {
@@ -443,5 +504,91 @@ export class TwitterService {
       await this.twitterPointRep.save(userTws);
       return userTws;
     }
+  }
+
+  async createPortfolio(req: CreateTwitterPortfolioDto) {
+    const userPort = await this.twitterPortfolioRep.findOne({
+      where: {
+        userId: req.userId
+      }
+    });
+
+    if (!userPort) {
+      const created = {
+        userId: req.userId,
+        username: req.username,
+        tokenName: req.tokenName,
+        contractAddress: req.contractAddress,
+        symbol: req.symbol,
+        shillPrice: req.shillPrice,
+        firstTweetDate: req.firstTweetDate,
+        firstTweet: req.firstTweet
+      };
+      const savePort = this.twitterPortfolioRep.create(created);
+      await this.twitterPortfolioRep.save(savePort);
+      // return savePort;
+    }
+  }
+
+  async getRecentUserTweets({
+    username,
+    userId,
+    limit,
+    includeReplies,
+    includePinned
+  }: {
+    username?: string;
+    userId?: string;
+    limit?: number;
+    includeReplies?: boolean;
+    includePinned?: boolean;
+  }) {
+    const tweets = await this.getUserTweets({ username, userId, limit, includeReplies, includePinned });
+
+    let listTweets = [];
+    // if tweets.status_code == 200
+    if (tweets.results.length === 0) {
+      return listTweets;
+    } else {
+      listTweets.push(tweets.results);
+      const twContinuation = await this.getUserTweetsContinuation({
+        continuationToken: tweets.continuation_token,
+        username,
+        userId,
+        limit,
+        includeReplies,
+        includePinned
+      });
+      if (!twContinuation || twContinuation.results.length > 0) {
+        listTweets.push(twContinuation.results);
+      }
+    }
+    return listTweets;
+  }
+
+  async getTokenFromTweets(listTweets: any) {
+    const tokenInfo = new Map<string, any>();
+    const listToken = [];
+    listTweets?.map((tweet: any) => {
+      const text = tweet.text;
+      const tokenSymbol = this.getTokenSymbolFromText(text);
+      tokenSymbol.map((symbol) => {
+        if (!listToken.includes(symbol)) listToken.push(symbol);
+        tokenInfo.set(symbol, tweet);
+      });
+    });
+    return { listToken, tokenInfo };
+  }
+
+  getTokenSymbolFromText(text: string) {
+    const regex = /\$([^\s]+)/g;
+    const matches = [];
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      matches.push(match[1]);
+    }
+
+    return matches;
   }
 }

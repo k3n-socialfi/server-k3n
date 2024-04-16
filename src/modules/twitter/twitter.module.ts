@@ -8,9 +8,14 @@ import { TwPoints } from './entities/twitter-points.entity';
 import { Reflector } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TwitterUsers } from '../users/entities/twitter-user.entity';
+import { TwitterPortfolio } from './entities/portfolio.entity';
 
 @Module({
-  imports: [HttpModule, TypeOrmModule.forFeature([TwPoints, TwitterUsers]), forwardRef(() => UserModule)],
+  imports: [
+    HttpModule,
+    TypeOrmModule.forFeature([TwPoints, TwitterUsers, TwitterPortfolio]),
+    forwardRef(() => UserModule)
+  ],
   providers: [TwitterService],
   controllers: [TwitterController],
   exports: [TwitterService]

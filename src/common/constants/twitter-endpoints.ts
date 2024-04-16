@@ -36,5 +36,6 @@ export const RapidApiEndpoints = {
   // TWEET
 
   TWEET_DETAILS: 'https://twitter154.p.rapidapi.com/tweet/details',
-  USER_TWEETS: 'https://twitter154.p.rapidapi.com/user/tweets'
+  USER_TWEETS: 'https://twitter154.p.rapidapi.com/user/tweets',
+  USER_TWEETS_CONTINUATION: 'https://twitter154.p.rapidapi.com/user/tweets/continuation'
 };
