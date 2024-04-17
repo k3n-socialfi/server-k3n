@@ -1,13 +1,11 @@
 import { AbstractEntity } from '@common/entities/abstract-entity';
-import { BeforeInsert, BeforeUpdate, Column, Entity } from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, Unique } from 'typeorm';
 
 @Entity('twitter-portfolio')
+@Unique(['userId', 'symbol'])
 export class TwitterPortfolio extends AbstractEntity {
-  @Column({ unique: true })
+  @Column()
   userId: string;
-
-  @Column({ unique: true })
-  username: string;
 
   @Column()
   tokenName: string;
@@ -17,6 +15,9 @@ export class TwitterPortfolio extends AbstractEntity {
 
   @Column()
   symbol: string;
+
+  @Column()
+  image: string;
 
   @Column({ type: 'decimal' })
   shillPrice: number;
@@ -28,7 +29,10 @@ export class TwitterPortfolio extends AbstractEntity {
   firstTweet: string;
 
   @BeforeInsert()
-  async beforeInsert() {}
+  async beforeInsert() {
+    if (!this.image) this.image = null;
+    if (!this.contractAddress) this.contractAddress = null;
+  }
 
   @BeforeUpdate()
   async beforeUpdate() {}

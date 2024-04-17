@@ -44,9 +44,10 @@ export class TwitterService {
       console.log('Start run twitter job !');
 
       // Get points
-      await this.twitterPointsCalculation();
+      // await this.twitterPointsCalculation();
 
       // Create User's Portfolio
+      await this.createUserTwitterPortfolio();
 
       // const batchSize = 1;
       // const batches = [];
@@ -187,18 +188,16 @@ export class TwitterService {
 
   async findTwitterUserId(username: string): Promise<string> {
     try {
-      const headers = {
-        authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}`
-      };
-
+      const headers = this.configService.get('rapidApi');
       const call = this.httpService
-        .get(TwitterEndpoints.USER_BY_USERNAME + `${username}`, {
+        .get(RapidApiEndpoints.USER_DETAILS + `?username=${username}`, {
           headers
         })
         .toPromise();
 
-      const res = (await call)?.data?.data;
-      return res?.id;
+      const res = (await call)?.data;
+      //   console.log('res:', res);
+      return res?.user_id;
     } catch (err) {
       // console.error('err:', err)
       // this.logger.error(err, err.stack, TwitterService.name);
@@ -283,15 +282,13 @@ export class TwitterService {
     username,
     userId,
     limit,
-    includeReplies,
-    includePinned
+    includeReplies
   }: {
     continuationToken: string;
     username?: string;
     userId?: string;
     limit?: number;
     includeReplies?: boolean;
-    includePinned?: boolean;
   }) {
     const headers = this.configService.get('rapidApi');
     const url = new URL(RapidApiEndpoints.USER_TWEETS_CONTINUATION);
@@ -314,9 +311,6 @@ export class TwitterService {
       url.searchParams.append('include_replies', includeReplies.toString());
     }
 
-    if (includePinned !== undefined) {
-      url.searchParams.append('include_pinned', includePinned.toString());
-    }
     console.log('url.toString():', url.toString());
     const call = this.httpService
       .get(url.toString(), {
@@ -509,24 +503,31 @@ export class TwitterService {
   async createPortfolio(req: CreateTwitterPortfolioDto) {
     const userPort = await this.twitterPortfolioRep.findOne({
       where: {
-        userId: req.userId
+        userId: req.userId,
+        symbol: req.symbol
       }
     });
 
     if (!userPort) {
+      console.log('create userPort:');
       const created = {
         userId: req.userId,
         username: req.username,
         tokenName: req.tokenName,
         contractAddress: req.contractAddress,
         symbol: req.symbol,
+        image: req.image,
         shillPrice: req.shillPrice,
         firstTweetDate: req.firstTweetDate,
         firstTweet: req.firstTweet
       };
-      const savePort = this.twitterPortfolioRep.create(created);
-      await this.twitterPortfolioRep.save(savePort);
-      // return savePort;
+      try {
+        const savePort = this.twitterPortfolioRep.create(created);
+        await this.twitterPortfolioRep.save(savePort);
+        return savePort;
+      } catch (err) {
+        console.log('err:', err);
+      }
     }
   }
 
@@ -543,52 +544,184 @@ export class TwitterService {
     includeReplies?: boolean;
     includePinned?: boolean;
   }) {
-    const tweets = await this.getUserTweets({ username, userId, limit, includeReplies, includePinned });
+    try {
+      const tweets = await this.getUserTweets({ username, userId, limit, includeReplies, includePinned });
 
-    let listTweets = [];
-    // if tweets.status_code == 200
-    if (tweets.results.length === 0) {
-      return listTweets;
-    } else {
-      listTweets.push(tweets.results);
-      const twContinuation = await this.getUserTweetsContinuation({
-        continuationToken: tweets.continuation_token,
-        username,
-        userId,
-        limit,
-        includeReplies,
-        includePinned
-      });
-      if (!twContinuation || twContinuation.results.length > 0) {
-        listTweets.push(twContinuation.results);
+      let listTweets = [];
+      // if tweets.status_code == 200
+      if (!tweets || !tweets?.results || tweets.results.length === 0) {
+        return listTweets;
+      } else {
+        listTweets.push(...tweets.results);
+        const twContinuation = await this.getUserTweetsContinuation({
+          continuationToken: tweets.continuation_token,
+          username,
+          userId,
+          limit,
+          includeReplies
+        });
+        if (!twContinuation || !twContinuation?.results || twContinuation?.results.length > 0) {
+          listTweets.push(...twContinuation.results);
+        }
       }
+      return listTweets;
+    } catch (err) {
+      console.log('err:', err);
+      // this.logger.error(err?.response?.data?.errors, err.stack, TwitterService.name);
+      // throw new InternalServerErrorException(err?.response?.data?.errors);
     }
-    return listTweets;
   }
 
-  async getTokenFromTweets(listTweets: any) {
-    const tokenInfo = new Map<string, any>();
+  getTokenFromTweets(listTweets: any) {
+    const tweetInfo = new Map<string, any>();
     const listToken = [];
     listTweets?.map((tweet: any) => {
       const text = tweet.text;
       const tokenSymbol = this.getTokenSymbolFromText(text);
       tokenSymbol.map((symbol) => {
         if (!listToken.includes(symbol)) listToken.push(symbol);
-        tokenInfo.set(symbol, tweet);
+        tweetInfo.set(symbol, tweet);
       });
     });
-    return { listToken, tokenInfo };
+    return { listToken, tweetInfo };
   }
 
   getTokenSymbolFromText(text: string) {
-    const regex = /\$([^\s]+)/g;
+    const regex = /\$([A-Za-z]+)/g;
     const matches = [];
     let match;
 
     while ((match = regex.exec(text)) !== null) {
-      matches.push(match[1]);
+      matches.push(match[1].toUpperCase());
     }
 
     return matches;
+  }
+
+  async addTokenToPortfolio({
+    username,
+    listToken,
+    tweetInfo
+  }: {
+    username: string;
+    listToken: string[];
+    tweetInfo: any;
+  }) {
+    console.log('listToken:', listToken);
+    await Promise.all(
+      listToken.map(async (token) => {
+        const info = await this.getTokenInfoDexScreener(token);
+        if (info) {
+          const tweet = tweetInfo.get(token);
+          const creationDate = tweet.creation_date;
+          const date = this.formatDate(creationDate);
+          // const tokenHistory = await this.getTokenPriceHistory(info.id, date);
+          // console.log('tokenHistory:', tokenHistory);
+
+          console.log('create-port');
+          const port = await this.createPortfolio({
+            userId: tweet.user.user_id,
+            username: username,
+            tokenName: info.baseToken.name,
+            contractAddress: info.baseToken.address,
+            symbol: info.baseToken.symbol,
+            // image:
+            shillPrice: 1,
+            firstTweetDate: creationDate,
+            firstTweet: `https://twitter.com/${username}/status/${tweet.tweet_id}`
+          });
+          return port;
+        }
+      })
+    );
+  }
+
+  async getTokenInfo(symbol: string) {
+    try {
+      const call = this.httpService.get(`https://api.coingecko.com/api/v3/search?query=${symbol}`).toPromise();
+      const res = (await call)?.data;
+      const info = res.coins[0];
+      if (!info || info.length === 0) {
+        return undefined;
+      }
+      return info;
+    } catch (err) {
+      console.log('err:', err);
+    }
+  }
+
+  async getTokenInfoDexScreener(symbol: string) {
+    try {
+      const call = this.httpService.get(`https://api.dexscreener.com/latest/dex/search/?q=${symbol}`).toPromise();
+      const res = (await call)?.data;
+      const info = res.pairs;
+      if (!info || info.length === 0) {
+        return undefined;
+      }
+      return info[0];
+    } catch (err) {
+      console.log('err:', err);
+    }
+  }
+
+  async getTokenPriceHistory(id: string, date: string) {
+    try {
+      const call = this.httpService
+        .get(`https://api.coingecko.com/api/v3/coins/${id}/history?date=${date}`)
+        .toPromise();
+
+      const res = await call;
+      if (!res || res.status != 200) return undefined;
+
+      return {
+        id: res.data?.id,
+        price: res.data?.market_data?.current_price?.usd
+      };
+    } catch (err) {
+      this.logger.error(err?.response?.data?.errors, err.stack, TwitterService.name);
+      throw new InternalServerErrorException(err?.response?.data?.errors);
+    }
+  }
+
+  async createUserTwitterPortfolio() {
+    const twitterUsers = await this.twitterUsersRep.find();
+    for (let i = 0; i < twitterUsers.length; i++) {
+      const tweets = await this.getRecentUserTweets({ username: twitterUsers[i].username, includePinned: true });
+
+      const { listToken, tweetInfo } = this.getTokenFromTweets(tweets);
+
+      await this.addTokenToPortfolio({ username: twitterUsers[i].username, listToken, tweetInfo });
+    }
+
+    // return port;
+  }
+
+  async getUserTwitterPortfolio(username: string) {
+    const userId = await this.findTwitterUserId(username);
+    const userPortfolio = await this.twitterPortfolioRep.find({
+      where: {
+        userId
+      }
+    });
+
+    const portResponse = await Promise.all(
+      userPortfolio.map(async (port) => {
+        const { _id, ...portData } = port;
+        return portData;
+      })
+    );
+
+    return portResponse;
+  }
+
+  formatDate(inputDate: string) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const dateParts = inputDate.split(' ');
+    const day = dateParts[2];
+    const monthIndex = months.indexOf(dateParts[1]);
+    const month = (monthIndex + 1).toString().padStart(2, '0');
+    const year = dateParts[5];
+
+    return `${day}-${month}-${year}`;
   }
 }

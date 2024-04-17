@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
 export class CreateTwitterPortfolioDto {
   @ApiProperty({})
   @IsNotEmpty()
@@ -17,14 +17,19 @@ export class CreateTwitterPortfolioDto {
   tokenName: string;
 
   @ApiProperty({})
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  contractAddress: string;
+  contractAddress?: string;
 
   @ApiProperty({})
   @IsNotEmpty()
   @IsString()
   symbol: string;
+
+  @ApiProperty({})
+  @IsOptional()
+  @IsString()
+  image?: string;
 
   @ApiProperty({})
   @IsNotEmpty()

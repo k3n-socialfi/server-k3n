@@ -76,18 +76,12 @@ export class TwitterController {
     };
   }
 
-  @Get('user/recent-tweets')
-  public async getRecentUserTweets(@Query(new ValidationPipe({ transform: true })) query: RequestUserTweetQuery) {
+  @Get('user/portfolio')
+  public async getUserTwitterPortfolio(@Query(new ValidationPipe({ transform: true })) query: RequestUserTweetQuery) {
     return {
       code: 200,
-      message: "Get user's tweets successful",
-      data: await this.twitterService.getRecentUserTweets({
-        username: query.username,
-        userId: query.userId,
-        limit: query.limit,
-        includePinned: query.includePinned,
-        includeReplies: query.includeReplies
-      })
+      message: "Get user's portfolio successful",
+      data: await this.twitterService.getUserTwitterPortfolio(query.username)
     };
   }
 

@@ -108,7 +108,7 @@ export class JobsService {
 
       let userTweet = [];
       if (res?.links?.twitter_screen_name) {
-        userTweet = await this.twitterService.getUserTweets({ username: res?.links?.twitter_screen_name });
+        userTweet = (await this.twitterService.getUserTweets({ username: res?.links?.twitter_screen_name })).results;
       }
       const project = {
         name: res?.name,
@@ -138,7 +138,7 @@ export class JobsService {
         marketCapRank: res?.market_data?.market_cap_rank,
         fdv: res?.market_data?.market_cap_fdv_ratio,
         tvl: res?.market_data?.total_value_locked,
-        tweets: userTweet.slice(0, 4)
+        tweets: userTweet?.slice(0, 4)
       };
       return project;
     } catch (err) {

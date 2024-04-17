@@ -23,7 +23,6 @@ import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { verifySignature } from 'src/utils/verify-signature/solana-signature';
 import { generateId } from 'src/utils/helper';
-import { ObjectId } from 'mongodb';
 import { TwitterUsers } from './entities/twitter-user.entity';
 import { CreateUserExperienceDto, UpdateUserExperienceDto } from './dto/request/experience.dto';
 import { UserExperiences } from './entities/experience.entity';
