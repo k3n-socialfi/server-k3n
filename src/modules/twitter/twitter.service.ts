@@ -714,6 +714,38 @@ export class TwitterService {
     return portResponse;
   }
 
+  async getPortfolioByUsername(username: string) {
+    const tweets = await this.getRecentUserTweets({ username, includePinned: true });
+
+    const { listToken, tweetInfo } = this.getTokenFromTweets(tweets);
+
+    // await this.addTokenToPortfolio({ username, listToken, tweetInfo });
+
+    const portfolio = await Promise.all(
+      listToken.map(async (token) => {
+        const info = await this.getTokenInfoDexScreener(token);
+        if (info) {
+          const tweet = tweetInfo.get(token);
+          const creationDate = tweet.creation_date;
+
+          const port = {
+            userId: tweet.user.user_id,
+            username: username,
+            tokenName: info.baseToken.name,
+            contractAddress: info.baseToken.address,
+            symbol: info.baseToken.symbol,
+            // image:
+            // shillPrice: 1,
+            firstTweetDate: creationDate,
+            firstTweet: `https://twitter.com/${username}/status/${tweet.tweet_id}`
+          };
+          return port;
+        }
+      })
+    );
+    return portfolio;
+  }
+
   formatDate(inputDate: string) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const dateParts = inputDate.split(' ');

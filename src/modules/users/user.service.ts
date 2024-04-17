@@ -242,10 +242,20 @@ export class UserService {
   }
 
   async findTopKolsRanking(query: RequestKolsTrending): Promise<UserListResponseDto> {
+    console.log('query:', query);
     const skip = (query.page - 1) * query.limit;
 
     // query conditions
     const whereConditions: any = {};
+
+    if (query.type) {
+      whereConditions.type = query.type;
+    }
+
+    if (query.tags) {
+      whereConditions.tags = query.tags;
+    }
+
     const [twitterUsers, totalCount] = await Promise.all([
       this.twitterUsersRep.find({
         where: whereConditions,
@@ -261,12 +271,19 @@ export class UserService {
     const userResponse = await Promise.all(
       twitterUsers.map(async (user) => {
         const userInfo = await this.findByUserId(user.userId);
-        return userInfo;
+
+        if (
+          (query.verification === undefined || userInfo.twitterInfo?.verificationStatus === query.verification) &&
+          (query.lowerLimit === undefined || userInfo.twitterInfo?.followers >= query.lowerLimit) &&
+          (query.upperLimit === undefined || userInfo.twitterInfo?.followers <= query.upperLimit)
+        ) {
+          return userInfo;
+        }
       })
     );
-
+    const filteredUserResponse = userResponse.filter((user) => user !== undefined);
     return {
-      users: userResponse,
+      users: filteredUserResponse,
       page: query.page,
       pageSize: twitterUsers.length,
       totalPages: totalPages,

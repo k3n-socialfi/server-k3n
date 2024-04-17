@@ -103,7 +103,8 @@ export class UserController {
   // @HasRoles(Role.Admin)
   // @UseGuards(AccessTokenGuard, RolesGuard)
   public async findTopKolsRanking(@Query(new ValidationPipe({ transform: true })) query: RequestKolsTrending) {
-    let { page, limit, type } = query;
+    let { page, limit, type, tags, verification, upperLimit, lowerLimit } = query;
+    console.log('query:', query);
     page = page ? +page : 0;
     limit = limit ? +limit : 100;
     return {
@@ -112,7 +113,11 @@ export class UserController {
       data: await this.userService.findTopKolsRanking({
         page,
         limit,
-        type
+        type,
+        tags,
+        verification,
+        upperLimit,
+        lowerLimit
       })
     };
   }
