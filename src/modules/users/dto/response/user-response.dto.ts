@@ -246,7 +246,7 @@ export class UserListResponseDto {
         page
         `
   })
-  page: number;
+  page?: number;
 
   @ApiProperty({
     example: 1,
@@ -254,7 +254,7 @@ export class UserListResponseDto {
         pageSize
         `
   })
-  pageSize: number;
+  pageSize?: number;
 
   @ApiProperty({
     example: 1,
@@ -262,7 +262,7 @@ export class UserListResponseDto {
         totalPages
         `
   })
-  totalPages: number;
+  totalPages?: number;
 
   @ApiProperty({
     example: 1,
@@ -270,5 +270,5 @@ export class UserListResponseDto {
         totalItems
         `
   })
-  totalItems: number;
+  totalItems?: number;
 }

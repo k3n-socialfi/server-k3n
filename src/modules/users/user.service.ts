@@ -16,7 +16,7 @@ import { ErrorsCodes, ErrorsMap } from '@common/constants/respond-errors';
 import { InternalUserResponseDto, UserListResponseDto, UserResponseDto } from './dto/response/user-response.dto';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Role } from '@common/constants/enum';
-import { RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
+import { RequestKolsRanking, RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
 import { UpdateUserByAdminDto } from './dto/request/admin-update-user.dto';
 import { TwitterService } from '../twitter/twitter.service';
 import { Cache } from 'cache-manager';
@@ -241,9 +241,8 @@ export class UserService {
     };
   }
 
-  async findTopKolsRanking(query: RequestKolsTrending): Promise<UserListResponseDto> {
+  async findTopKolsRanking(query: RequestKolsRanking): Promise<UserListResponseDto> {
     console.log('query:', query);
-    const skip = (query.page - 1) * query.limit;
 
     // query conditions
     const whereConditions: any = {};
@@ -256,18 +255,14 @@ export class UserService {
       whereConditions.tags = query.tags;
     }
 
-    const [twitterUsers, totalCount] = await Promise.all([
-      this.twitterUsersRep.find({
-        where: whereConditions,
-        skip: skip > 0 ? skip : 0,
-        take: query.limit,
-        order: { totalPoints: 'DESC' }
-      }),
-      this.countDocuments()
-    ]);
+    const twitterUsers = await this.twitterUsersRep.find({
+      where: whereConditions,
+      // skip: skip > 0 ? skip : 0,
+      // take: query.limit,
+      order: { totalPoints: 'DESC' }
+    });
 
-    const totalPages = Math.ceil(totalCount / query.limit);
-
+    let totalCount = 0;
     const userResponse = await Promise.all(
       twitterUsers.map(async (user) => {
         const userInfo = await this.findByUserId(user.userId);
@@ -275,19 +270,18 @@ export class UserService {
         if (
           (query.verification === undefined || userInfo.twitterInfo?.verificationStatus === query.verification) &&
           (query.lowerLimit === undefined || userInfo.twitterInfo?.followers >= query.lowerLimit) &&
-          (query.upperLimit === undefined || userInfo.twitterInfo?.followers <= query.upperLimit)
+          (query.upperLimit === undefined || userInfo.twitterInfo?.followers <= query.upperLimit) &&
+          totalCount <= query.top
         ) {
+          totalCount++;
           return userInfo;
         }
       })
     );
     const filteredUserResponse = userResponse.filter((user) => user !== undefined);
+
     return {
-      users: filteredUserResponse,
-      page: query.page,
-      pageSize: twitterUsers.length,
-      totalPages: totalPages,
-      totalItems: totalCount
+      users: filteredUserResponse
     };
   }
 

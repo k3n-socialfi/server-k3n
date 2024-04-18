@@ -52,6 +52,52 @@ export class RequestKolsTrending extends PaginationParams {
   @ApiProperty({ required: false, enum: UserType })
   type?: UserType;
 
+  // @IsOptional()
+  // @Type(() => Boolean)
+  // @ApiProperty({ required: false })
+  // @IsBoolean()
+  // verification?: boolean;
+
+  // @IsOptional()
+  // @Type(() => Number)
+  // @IsNumber()
+  // @Min(0)
+  // @ApiProperty({ required: false, default: 0 })
+  // lowerLimit?: number;
+
+  // @IsOptional()
+  // @Type(() => Number)
+  // @IsNumber()
+  // @Max(10000000)
+  // @ApiProperty({ required: false, default: 10000000 })
+  // upperLimit?: number;
+
+  // @IsOptional()
+  // @IsArray()
+  // @ApiProperty({ required: false })
+  // tags?: string[];
+
+  // @IsOptional()
+  // @Type(() => String)
+  // @IsString()
+  // @ApiProperty({ required: false })
+  // review?: string;
+}
+
+export class RequestKolsRanking {
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @ApiProperty({ required: false, default: 100 })
+  top: number;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  @ApiProperty({ required: false, enum: UserType })
+  type?: UserType;
+
   @IsOptional()
   @Type(() => Boolean)
   @ApiProperty({ required: false })

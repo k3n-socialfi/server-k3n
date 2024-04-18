@@ -31,7 +31,7 @@ import { Role } from '@common/constants/enum';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { HasRoles } from '@common/decorators/has-roles.decorator';
 import { PaginationParams } from '@common/dtos/pagination.dto';
-import { RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
+import { RequestKolsRanking, RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
 import {
   SwaggerCreateUserByAdminResponseDto,
   SwaggerUpdateUserByAdminResponseDto,
@@ -102,17 +102,15 @@ export class UserController {
   // })
   // @HasRoles(Role.Admin)
   // @UseGuards(AccessTokenGuard, RolesGuard)
-  public async findTopKolsRanking(@Query(new ValidationPipe({ transform: true })) query: RequestKolsTrending) {
-    let { page, limit, type, tags, verification, upperLimit, lowerLimit } = query;
+  public async findTopKolsRanking(@Query(new ValidationPipe({ transform: true })) query: RequestKolsRanking) {
+    let { top, type, tags, verification, upperLimit, lowerLimit } = query;
     console.log('query:', query);
-    page = page ? +page : 0;
-    limit = limit ? +limit : 100;
+
     return {
       code: 200,
       message: 'Get all user successful',
       data: await this.userService.findTopKolsRanking({
-        page,
-        limit,
+        top,
         type,
         tags,
         verification,
