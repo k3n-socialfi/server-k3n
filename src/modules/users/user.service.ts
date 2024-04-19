@@ -277,8 +277,6 @@ export class UserService {
     console.log('query:', query);
 
     const tagsQuery: any = typeof query.tags === 'string' ? [query.tags] : query.tags;
-    // query conditions
-    const whereConditions: any = {};
 
     const twitterUsers = await this.twitterUsersRep.find({
       // skip: skip > 0 ? skip : 0,
@@ -515,6 +513,22 @@ export class UserService {
   }
 
   async createUserWithTwitter(request: CreateUserWithTwitterDto): Promise<UserResponseDto> {
+    //
+    // random
+    const userTypes = Object.values(UserType);
+    const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
+
+    const jobTittle = Object.values(JobTittle);
+    const randomJob = jobTittle[Math.floor(Math.random() * jobTittle.length)];
+
+    const tags = Object.values(UserTags);
+    const randomNumber = Math.floor(Math.random() * tags.length);
+    const randomTags = [tags[randomNumber], tags[randomNumber + 1], tags[randomNumber + 2]];
+
+    const randomReview = Math.random() * 5;
+    const review = Number(randomReview.toFixed(1));
+    ///
+
     const { id, username, password } = request;
     const twUser = await this.twitterService.findTwitterUsersById(id);
     const social = new SocialNetwork();
@@ -529,7 +543,11 @@ export class UserService {
       coverImage: twUser?.profile_banner_url,
       bio: twUser?.description,
       role: Role.User,
-      socialProfiles: [social]
+      socialProfiles: [social],
+      tags: randomTags,
+      jobTittle: randomJob,
+      type: randomUserType,
+      review: review
     };
     const saveUser = this.userRep.create(userCreated);
 
