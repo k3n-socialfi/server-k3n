@@ -2,7 +2,7 @@ import { PaginationParams } from '@common/dtos/pagination.dto';
 import { IsNumber, Min, IsOptional, IsString, IsBoolean, Max, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { UserType } from '../../entities/user.entity';
+import { UserTags, UserType } from '../../entities/user.entity';
 import { Role } from '@common/constants/enum';
 
 export class RequestUserQuery extends PaginationParams {
@@ -101,8 +101,8 @@ export class RequestKolsRanking {
   @IsOptional()
   @Type(() => Boolean)
   @ApiProperty({ required: false })
-  @IsBoolean()
-  verification?: boolean;
+  // @IsBoolean()
+  verification?: Boolean;
 
   @IsOptional()
   @Type(() => Number)
@@ -119,13 +119,14 @@ export class RequestKolsRanking {
   upperLimit?: number;
 
   @IsOptional()
-  @IsArray()
+  @Type(() => String)
+  // @IsArray()
   @ApiProperty({ required: false })
-  tags?: string[];
+  tags?: UserTags[] | UserTags;
 
   @IsOptional()
-  @Type(() => String)
+  @Type(() => Number)
   @IsString()
   @ApiProperty({ required: false })
-  review?: string;
+  review?: number;
 }

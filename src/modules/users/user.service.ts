@@ -10,7 +10,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BlockchainWallet, SocialNetwork, User, UserType } from './entities/user.entity';
+import { BlockchainWallet, JobTittle, SocialNetwork, User, UserTags, UserType } from './entities/user.entity';
 import { CreateUserByAdminDto, CreateUserWithTwitterDto, CreateUserWithWalletDto } from './dto/request/create-user.dto';
 import { ErrorsCodes, ErrorsMap } from '@common/constants/respond-errors';
 import { InternalUserResponseDto, UserListResponseDto, UserResponseDto } from './dto/response/user-response.dto';
@@ -52,23 +52,18 @@ export class UserService {
       const twUser = await this.twitterService.findTwitterUsersByUsername(listUser[i]);
       const userTypes = Object.values(UserType);
       const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
-      const jobTile = [
-        'Blockchain Developer',
-        'FrontEnd Developer',
-        'Backend Developer',
-        'Freelance',
-        'FullStack Developer',
-        'Data Engineer',
-        'KOLs',
-        'Producer Manager',
-        'CEO',
-        'CMO',
-        'Co-Founder',
-        'Marketing Manager',
-        'Marketing',
-        'Community Manager'
-      ];
+
+      const jobTile = Object.values(JobTittle);
       const randomJob = Math.floor(Math.random() * jobTile.length);
+
+      const tags = Object.values(UserTags);
+      const randomNumber = Math.floor(Math.random() * tags.length);
+      const randomTags = [tags[randomNumber], tags[randomNumber + 1], tags[randomNumber + 2]];
+
+      const randomReview = Math.random() * 5;
+      // Fix to one decimal place
+      const review = Number(randomReview.toFixed(1));
+
       const social = new SocialNetwork();
       social.social = 'twitter';
       social.username = listUser[i];
@@ -83,7 +78,9 @@ export class UserService {
         role: Role.User,
         socialProfiles: [social],
         type: randomUserType,
-        jobTitle: jobTile[randomJob]
+        jobTittle: jobTile[randomJob],
+        tags: randomTags,
+        review: review
       };
       const saveUser = this.userRep.create(userCreated);
 
@@ -107,6 +104,41 @@ export class UserService {
     }
     console.log('End run user init job !');
   }
+
+  // @Timeout(0)
+  async updateTags() {
+    const users = await this.userRep.find();
+    try {
+      await Promise.all(
+        users.map(async (user) => {
+          // random
+          const userTypes = Object.values(UserType);
+          const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
+
+          const jobTittle = Object.values(JobTittle);
+          const randomJob = jobTittle[Math.floor(Math.random() * jobTittle.length)];
+
+          const tags = Object.values(UserTags);
+          const randomNumber = Math.floor(Math.random() * tags.length);
+          const randomTags = [tags[randomNumber], tags[randomNumber + 1], tags[randomNumber + 2]];
+
+          const randomReview = Math.random() * 5;
+          // Fix to one decimal place
+          const review = Number(randomReview.toFixed(1));
+
+          console.log('user:', user.username);
+          if (!user.tags) user.tags = randomTags;
+          if (!user.jobTittle) user.jobTittle = randomJob;
+          if (!user.type) user.type = randomUserType;
+          if (!user.review) user.review = review;
+          await this.userRep.update({ userId: user.userId }, user);
+        })
+      );
+    } catch (err) {
+      console.log('err:', err);
+    }
+  }
+
   async findAllUsers(query: RequestUserQuery): Promise<UserListResponseDto> {
     const skip = (query.page - 1) * query.limit;
 
@@ -244,19 +276,11 @@ export class UserService {
   async findTopKolsRanking(query: RequestKolsRanking): Promise<UserListResponseDto> {
     console.log('query:', query);
 
+    const tagsQuery: any = typeof query.tags === 'string' ? [query.tags] : query.tags;
     // query conditions
     const whereConditions: any = {};
 
-    if (query.type) {
-      whereConditions.type = query.type;
-    }
-
-    if (query.tags) {
-      whereConditions.tags = query.tags;
-    }
-
     const twitterUsers = await this.twitterUsersRep.find({
-      where: whereConditions,
       // skip: skip > 0 ? skip : 0,
       // take: query.limit,
       order: { totalPoints: 'DESC' }
@@ -266,11 +290,14 @@ export class UserService {
     const userResponse = await Promise.all(
       twitterUsers.map(async (user) => {
         const userInfo = await this.findByUserId(user.userId);
-
         if (
           (query.verification === undefined || userInfo.twitterInfo?.verificationStatus === query.verification) &&
           (query.lowerLimit === undefined || userInfo.twitterInfo?.followers >= query.lowerLimit) &&
           (query.upperLimit === undefined || userInfo.twitterInfo?.followers <= query.upperLimit) &&
+          (query.tags === undefined ||
+            query.tags.length === 0 ||
+            tagsQuery.every((tag) => userInfo.tags.includes(tag))) &&
+          (query.type === undefined || userInfo.type == query.type) &&
           totalCount <= query.top
         ) {
           totalCount++;
@@ -576,8 +603,8 @@ export class UserService {
     if (dob) users.dob = dob;
     if (gender) users.gender = gender;
     if (location) users.location = location;
-    const { twitterInfo, experience, ...saveDate } = users;
-    await this.userRep.update({ userId }, saveDate);
+    const { twitterInfo, experience, ...saveData } = users;
+    await this.userRep.update({ userId }, saveData);
     return users;
   }
 

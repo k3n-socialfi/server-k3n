@@ -1,6 +1,6 @@
 import { LoggerType } from '@common/constants/enum';
 import { MyConfigService } from '@config/config.service';
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { WinstonModule } from 'nest-winston';
 import { TerminusModule } from '@nestjs/terminus';
@@ -12,7 +12,7 @@ import { CoreModule } from './modules/core.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { CacheModule } from '@nestjs/cache-manager';
-import { APP_INTERCEPTOR, Reflector } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_PIPE, Reflector } from '@nestjs/core';
 import { SnakeToCamelInterceptor } from '@common/interceptors/snake-to-camel.interceptor';
 import { ScheduleModule } from '@nestjs/schedule';
 
@@ -39,6 +39,10 @@ import { ScheduleModule } from '@nestjs/schedule';
     {
       provide: APP_INTERCEPTOR,
       useClass: SnakeToCamelInterceptor
+    },
+    {
+      provide: APP_PIPE,
+      useValue: new ValidationPipe({ transform: true })
     }
   ]
 })

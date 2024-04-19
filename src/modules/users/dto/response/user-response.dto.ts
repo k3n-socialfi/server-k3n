@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose, Type } from 'class-transformer';
 import { ArrayMinSize, IsArray, IsNotEmpty, IsString, IsNumber, ValidateNested, IsObject } from 'class-validator';
 import { Column, ObjectId } from 'typeorm';
-import { BlockchainWallet, SocialNetwork } from '../../entities/user.entity';
+import { BlockchainWallet, JobTittle, SocialNetwork, UserTags } from '../../entities/user.entity';
 import { ResponseDto } from '@common/interceptors/success-response.dto';
 import { UserExperiences } from '../../entities/experience.entity';
 
@@ -123,6 +123,15 @@ export abstract class UserResponseDto {
     description: "Links to the user's social media profiles"
   })
   socialProfiles?: SocialNetwork[];
+
+  @ApiProperty({})
+  tags?: UserTags[];
+
+  @ApiProperty({})
+  jobTittle?: JobTittle;
+
+  @ApiProperty({})
+  review?: number;
 
   // @ApiProperty({
   //   example: 100,
