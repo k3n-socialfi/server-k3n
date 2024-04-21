@@ -396,10 +396,11 @@ export class UserService {
     //   userTweet = await this.twitterService.getUserTweets({ username: usernameTwitter.username });
     // }
     let userTweet = await this.twitterService.getUserTweets({ username });
-    if (!userTweet) userTweet = [];
+    if (!userTweet) userTweet.results = [];
+    console.log('userTweet:', userTweet);
     return {
       ...userData,
-      posts: userTweet ? userTweet.slice(0, 4) : []
+      posts: userTweet.results.slice(0, 4)
     };
   }
 
