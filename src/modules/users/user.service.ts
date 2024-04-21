@@ -399,7 +399,7 @@ export class UserService {
     if (!userTweet) userTweet = [];
     return {
       ...userData,
-      posts: userTweet ? [] : userTweet.slice(0, 4)
+      posts: userTweet ? userTweet.slice(0, 4) : []
     };
   }
 
