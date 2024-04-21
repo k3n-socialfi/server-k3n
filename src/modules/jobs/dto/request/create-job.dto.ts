@@ -11,7 +11,9 @@ import {
   IsBoolean,
   IsEmail,
   IsStrongPassword,
-  IsIn
+  IsIn,
+  Min,
+  Max
 } from 'class-validator';
 export class CreateJobDto {
   @ApiProperty({})
@@ -48,6 +50,15 @@ export class CreateJobDto {
   @IsString()
   @IsOptional()
   image?: string;
+
+  @ApiProperty({})
+  @IsNumber()
+  price: number;
+
+  @ApiProperty({})
+  @IsString()
+  @IsOptional()
+  paymentMethod?: string;
 
   //   @ApiProperty({})
   //   @IsString()

@@ -28,6 +28,19 @@ export class JobsController {
     };
   }
 
+  @Get('/popular')
+  public async getPopularJobs() {
+    // console.log('req:', req.user)
+    // let { page, limit } = query;
+    // page = page ? +page : 0;
+    // limit = limit ? +limit : 10;
+    return {
+      code: 200,
+      message: 'Get popular jobs successful',
+      data: await this.jobsService.findPopularJobs()
+    };
+  }
+
   @Get(':jobId')
   //   @ApiResponse({
   //     description: 'Get user by id response',

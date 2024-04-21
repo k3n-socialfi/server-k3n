@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { TwitterService } from '../twitter/twitter.service';
 import { User } from '../users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -32,7 +32,9 @@ export class JobsService {
       jobDescription: request.jobDescription,
       organization: request.organization,
       image: request.image,
-      creator: userId
+      creator: userId,
+      paymentMethod: request.paymentMethod,
+      price: request.price
     };
     const saveJob = this.jobsRep.create(jobCreated);
     await this.jobsRep.save(saveJob);
@@ -86,6 +88,19 @@ export class JobsService {
   async countDocuments(): Promise<number> {
     const count = await this.jobsRep.count();
     return count;
+  }
+
+  async findPopularJobs() {
+    const jobs = await this.jobsRep.find({
+      where: {
+        rating: 5
+      }
+    });
+    const jobsResponse = jobs.map((job) => {
+      const { _id, ...jobData } = job;
+      return jobData;
+    });
+    return jobsResponse;
   }
 
   async findJobById(jobId: string) {
