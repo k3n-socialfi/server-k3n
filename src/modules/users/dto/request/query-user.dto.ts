@@ -89,7 +89,7 @@ export class RequestKolsRanking {
   @Type(() => Number)
   @IsNumber()
   @Min(1)
-  @ApiProperty({ required: false, default: 100 })
+  @ApiProperty({ required: true, default: 100 })
   top: number;
 
   @IsOptional()
@@ -121,8 +121,8 @@ export class RequestKolsRanking {
   @IsOptional()
   @Type(() => String)
   // @IsArray()
-  @ApiProperty({ required: false })
-  tags?: UserTags[] | UserTags;
+  @ApiProperty({ required: true })
+  tags?: UserTags[];
 
   @IsOptional()
   @Type(() => Number)
