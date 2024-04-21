@@ -5,6 +5,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { UserTags, UserType } from '../../entities/user.entity';
 import { Role } from '@common/constants/enum';
 
+// export enum ReviewQuery {
+//   OneTwo = '1-2',
+//   TwoThree = '2-3'
+// }
+
 export class RequestUserQuery extends PaginationParams {
   @IsOptional()
   @Type(() => String)
@@ -121,7 +126,7 @@ export class RequestKolsRanking {
   @IsOptional()
   @Type(() => String)
   // @IsArray()
-  @ApiProperty({ required: true })
+  @ApiProperty({ required: false })
   tags?: UserTags[];
 
   @IsOptional()
