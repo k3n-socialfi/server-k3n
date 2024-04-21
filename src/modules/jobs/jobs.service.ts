@@ -128,7 +128,7 @@ export class JobsService {
       const project = {
         name: res?.name,
         description: res?.description?.en,
-        image: res?.image?.thumb,
+        image: res?.image?.large,
         categories: res?.categories,
         social: {
           twitter: res?.links?.twitter_screen_name,

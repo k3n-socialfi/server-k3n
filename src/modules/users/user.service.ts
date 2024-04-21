@@ -375,11 +375,12 @@ export class UserService {
     const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
     const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
     const { password, _id, ...userData } = user;
+    const image = twitterUser.avatar.replace('normal', '400x400');
     userData.twitterInfo = {
       twitterPoints: twitterUser.twitterPoints,
       royaltyPoints: twitterUser.royaltyPoints,
       totalPoints: twitterUser.totalPoints,
-      avatar: twitterUser.avatar,
+      avatar: image,
       coverImage: twitterUser.coverImage,
       verificationStatus: twitterUser.verificationStatus,
       followers: twitterUser.followers,
@@ -397,7 +398,6 @@ export class UserService {
     // }
     let userTweet = await this.twitterService.getUserTweets({ username });
     if (!userTweet) userTweet.results = [];
-    console.log('userTweet:', userTweet);
     return {
       ...userData,
       posts: userTweet.results.slice(0, 4)
