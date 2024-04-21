@@ -28,6 +28,7 @@ import { CreateUserExperienceDto, UpdateUserExperienceDto } from './dto/request/
 import { UserExperiences } from './entities/experience.entity';
 import { UpdateUserDto } from './dto/request/update-user.dto';
 import { Timeout } from '@nestjs/schedule';
+import { listUser } from './dto/request/import-user.dto';
 
 @Injectable()
 export class UserService {
@@ -42,67 +43,77 @@ export class UserService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
 
-  // @Timeout(0)
+  @Timeout(0)
   async initUser() {
     console.log('Start run user init job !');
-    const listUser = [];
-    for (let i = 0; i < listUser.length; i++) {
-      console.log('i:', i);
-      console.log('listUser[i]:', listUser[i]);
-      const twUser = await this.twitterService.findTwitterUsersByUsername(listUser[i]);
-      const userTypes = Object.values(UserType);
-      const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
+    // const listUser = ['Ozi_Eth7'];
+    try {
+      for (let i = 0; i < listUser.length; i++) {
+        console.log('i:', i);
+        console.log('listUser[i]:', listUser[i]);
+        const twUser = await this.twitterService.findTwitterUsersByUsername(listUser[i]);
+        if (!twUser || !twUser?.user_id || !twUser.username) continue;
+        // console.log('twUser:', twUser);
+        const userTypes = Object.values(UserType);
+        const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
 
-      const jobTile = Object.values(JobTittle);
-      const randomJob = Math.floor(Math.random() * jobTile.length);
+        const jobTile = Object.values(JobTittle);
+        const randomJob = Math.floor(Math.random() * jobTile.length);
 
-      const tags = Object.values(UserTags);
-      const randomNumber = Math.floor(Math.random() * tags.length);
-      const randomTags = [tags[randomNumber], tags[randomNumber + 1], tags[randomNumber + 2]];
+        const tags = Object.values(UserTags);
+        const randomNumber = Math.floor(Math.random() * tags.length);
+        const randomTags = [tags[randomNumber], tags[randomNumber + 1], tags[randomNumber + 2]];
 
-      const randomReview = Math.random() * 5;
-      // Fix to one decimal place
-      const review = Number(randomReview.toFixed(1));
+        const randomReview = Math.random() + 4;
+        // Fix to one decimal place
+        const review = Number(randomReview.toFixed(1));
 
-      const social = new SocialNetwork();
-      social.social = 'twitter';
-      social.username = listUser[i];
-      const userCreated = {
-        userId: twUser.user_id,
-        username: twUser.username,
-        password: null,
-        fullName: twUser?.name,
-        avatar: twUser?.profile_pic_url,
-        coverImage: twUser?.profile_banner_url,
-        bio: twUser?.description,
-        role: Role.User,
-        socialProfiles: [social],
-        type: randomUserType,
-        jobTittle: jobTile[randomJob],
-        tags: randomTags,
-        review: review
-      };
-      const saveUser = this.userRep.create(userCreated);
+        // const price = Number((Math.random() * 5000).toFixed(0));
 
-      const twitterUserCreated = {
-        userId: twUser.user_id,
-        username: twUser.username,
-        fullName: twUser?.name,
-        avatar: twUser?.profile_pic_url,
-        coverImage: twUser?.profile_banner_url,
-        bio: twUser?.description,
-        verificationStatus: twUser?.is_blue_verified,
-        followers: twUser?.follower_count,
-        following: twUser?.following_count,
-        externalUrl: twUser?.external_url,
-        numberOfTweets: twUser?.number_of_tweets,
-        creationDate: twUser?.creation_date
-      };
-      const saveTwitterUser = this.twitterUsersRep.create(twitterUserCreated);
+        const social = new SocialNetwork();
+        social.social = 'twitter';
+        social.username = listUser[i];
+        const userCreated = {
+          userId: twUser.user_id,
+          username: twUser.username,
+          password: null,
+          fullName: twUser?.name,
+          avatar: twUser?.profile_pic_url,
+          coverImage: twUser?.profile_banner_url,
+          bio: twUser?.description,
+          role: Role.User,
+          socialProfiles: [social],
+          type: randomUserType,
+          jobTittle: jobTile[randomJob],
+          tags: randomTags,
+          review: review
+          // price: price
+        };
+        const saveUser = this.userRep.create(userCreated);
+        console.log('saveUser:', saveUser);
 
-      await Promise.all([this.userRep.save(saveUser), this.twitterUsersRep.save(saveTwitterUser)]);
+        const twitterUserCreated = {
+          userId: twUser.user_id,
+          username: twUser.username,
+          fullName: twUser?.name,
+          avatar: twUser?.profile_pic_url,
+          coverImage: twUser?.profile_banner_url,
+          bio: twUser?.description,
+          verificationStatus: twUser?.is_blue_verified,
+          followers: twUser?.follower_count,
+          following: twUser?.following_count,
+          externalUrl: twUser?.external_url,
+          numberOfTweets: twUser?.number_of_tweets,
+          creationDate: twUser?.creation_date
+        };
+        const saveTwitterUser = this.twitterUsersRep.create(twitterUserCreated);
+
+        await Promise.all([this.userRep.save(saveUser), this.twitterUsersRep.save(saveTwitterUser)]);
+      }
+      console.log('End run user init job !');
+    } catch (err) {
+      console.log('err:', err);
     }
-    console.log('End run user init job !');
   }
 
   // @Timeout(0)
@@ -122,7 +133,7 @@ export class UserService {
           const randomNumber = Math.floor(Math.random() * tags.length);
           const randomTags = [tags[randomNumber], tags[randomNumber + 1], tags[randomNumber + 2]];
 
-          const randomReview = Math.random() * 5;
+          const randomReview = Math.random() + 4;
           // Fix to one decimal place
           const review = Number(randomReview.toFixed(1));
 
@@ -130,7 +141,7 @@ export class UserService {
           if (!user.tags) user.tags = randomTags;
           if (!user.jobTittle) user.jobTittle = randomJob;
           if (!user.type) user.type = randomUserType;
-          if (!user.review) user.review = review;
+          if (user.review < 4 || user.review > 5) user.review = review;
           await this.userRep.update({ userId: user.userId }, user);
         })
       );
