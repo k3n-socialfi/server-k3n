@@ -150,6 +150,17 @@ export class UserService {
     }
   }
 
+  // @Timeout(0)
+  // async deleteReCord() {
+  //   const id = '66255f9789bcfa017427c561';
+  //   console.log('id:', id);
+  //   const results = await this.userRep
+  //     .createQueryBuilder()
+  //     .delete()
+  //     .where('_id > :id', { id }) // Assuming id is a string representing ObjectId
+  //     .execute();
+  // }
+
   async findAllUsers(query: RequestUserQuery): Promise<UserListResponseDto> {
     const skip = (query.page - 1) * query.limit;
 

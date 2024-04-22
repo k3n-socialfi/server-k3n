@@ -34,8 +34,11 @@ export class JobsService {
       image: request.image,
       creator: userId,
       paymentMethod: request.paymentMethod,
-      price: request.price
+      price: request.price,
+      platform: request.platform,
+      currency: request.currency
     };
+    console.log('jobCreated:', jobCreated);
     const saveJob = this.jobsRep.create(jobCreated);
     await this.jobsRep.save(saveJob);
     delete saveJob._id;

@@ -60,6 +60,15 @@ export class CreateJobDto {
   @IsOptional()
   paymentMethod?: string;
 
+  @ApiProperty({})
+  @IsString()
+  platform: string;
+
+  @ApiProperty({})
+  @IsOptional()
+  @IsArray()
+  currency?: string[];
+
   //   @ApiProperty({})
   //   @IsString()
   //   creator: string;

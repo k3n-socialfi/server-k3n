@@ -45,6 +45,12 @@ export class Jobs extends AbstractEntity {
   @Column({ nullable: true, default: null })
   paymentMethod: string;
 
+  @Column({ nullable: true, default: null })
+  platform: string;
+
+  @Column({ nullable: true, default: [] })
+  currency: string[];
+
   @BeforeInsert()
   async beforeInsert() {
     if (!this.tags) this.tags = [];
