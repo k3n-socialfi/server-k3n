@@ -652,11 +652,12 @@ export class UserService {
     };
     const saveUser = this.userRep.create(userCreated);
 
+    const image = twUser?.profile_pic_url.avatar.replace('normal', '400x400');
     const twitterUserCreated = {
       userId: id,
       username,
       fullName: twUser?.name,
-      avatar: twUser?.profile_pic_url,
+      avatar: image,
       coverImage: twUser?.profile_banner_url,
       bio: twUser?.description,
       verificationStatus: twUser?.is_blue_verified,
