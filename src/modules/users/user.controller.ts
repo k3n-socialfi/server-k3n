@@ -103,19 +103,18 @@ export class UserController {
   // @HasRoles(Role.Admin)
   // @UseGuards(AccessTokenGuard, RolesGuard)
   public async findTopKolsRanking(@Query(new ValidationPipe({ transform: true })) query: RequestKolsRanking) {
-    let { top, type, tags, verification, upperLimit, lowerLimit } = query;
-    console.log('query:', query);
+    let { page, limit } = query;
+    page = page ? +page : 0;
+    limit = limit ? +limit : 10;
+    // console.log('query:', query);
 
     return {
       code: 200,
       message: 'Get all user successful',
       data: await this.userService.findTopKolsRanking({
-        top,
-        type,
-        tags,
-        verification,
-        upperLimit,
-        lowerLimit
+        page,
+        limit,
+        ...query
       })
     };
   }
@@ -171,6 +170,19 @@ export class UserController {
       code: 200,
       message: 'Get my profile successful',
       data: await this.userService.findProfileByUsername(userObject.username)
+    };
+  }
+
+  @Get('posts/:username')
+  // @ApiResponse({
+  //   description: 'Get user\'s posts',
+  //   type: SwaggerUserResponseDto
+  // })
+  public async getTwitterUserPost(@Param('username') username: string) {
+    return {
+      code: 200,
+      message: "Get user's posts successful",
+      data: await this.userService.getTwitterUserPost(username)
     };
   }
 

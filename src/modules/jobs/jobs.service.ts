@@ -1,8 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { TwitterService } from '../twitter/twitter.service';
-import { User } from '../users/entities/user.entity';
-import { MoreThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';

@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MongoRepository, Repository } from 'typeorm';
 import { BlockchainWallet, JobTittle, SocialNetwork, User, UserTags, UserType } from './entities/user.entity';
 import { CreateUserByAdminDto, CreateUserWithTwitterDto, CreateUserWithWalletDto } from './dto/request/create-user.dto';
 import { ErrorsCodes, ErrorsMap } from '@common/constants/respond-errors';
@@ -36,9 +36,9 @@ export class UserService {
     private readonly httpService: HttpService,
     @Inject(forwardRef(() => TwitterService))
     private readonly twitterService: TwitterService,
-    @InjectRepository(User) private userRep: Repository<User>,
-    @InjectRepository(UserExperiences) private userExperienceRep: Repository<UserExperiences>,
-    @InjectRepository(TwitterUsers) private twitterUsersRep: Repository<TwitterUsers>,
+    @InjectRepository(User) private userRep: MongoRepository<User>,
+    @InjectRepository(UserExperiences) private userExperienceRep: MongoRepository<UserExperiences>,
+    @InjectRepository(TwitterUsers) private twitterUsersRep: MongoRepository<TwitterUsers>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
@@ -162,10 +162,16 @@ export class UserService {
   // }
 
   async findAllUsers(query: RequestUserQuery): Promise<UserListResponseDto> {
-    const skip = (query.page - 1) * query.limit;
+    const skip = query.page * query.limit;
 
+    const tagsQuery: any = typeof query.tags === 'string' ? [query.tags] : query.tags;
     // query conditions
     const whereConditions: any = {};
+    whereConditions['twitterInfo.followers'] = {
+      $gte: query.lowerLimit,
+      $lte: query.upperLimit
+    };
+
     if (query.username) {
       whereConditions.username = query.username;
     }
@@ -175,75 +181,86 @@ export class UserService {
     }
 
     if (query.type) {
-      whereConditions.type = query.type;
+      whereConditions.type = { $eq: query.type };
     }
 
-    // if (query.lowerLimit) {
-    //   whereConditions.lowerLimit = query.lowerLimit;
-    // }
+    if (query.verification) {
+      whereConditions['twitterInfo.verificationStatus'] = query.verification;
+    }
 
-    // if (query.upperLimit) {
-    //   whereConditions.upperLimit = query.upperLimit;
-    // }
+    if (tagsQuery) {
+      whereConditions.tags = { $in: tagsQuery };
+    }
+
+    if (query.review) {
+      let review = query.review.split('-').map(Number);
+      whereConditions.review = { $gte: review[0], $lte: review[1] };
+    }
+
+    const aggregationPipeline = [
+      {
+        $lookup: {
+          from: 'twitter-users',
+          localField: 'userId',
+          foreignField: 'userId',
+          as: 'twitterInfo'
+        }
+      },
+      { $unwind: '$twitterInfo' },
+      {
+        $match: whereConditions
+      },
+      {
+        $project: {
+          _id: 0,
+          password: 0,
+          'twitterInfo._id': 0
+        }
+      },
+      // { $sort: { 'twitterInfo.totalPoints': -1 } },
+      { $skip: skip > 0 ? skip : 0 },
+      { $limit: query.limit }
+    ];
+
     const [users, totalCount] = await Promise.all([
-      this.userRep.find({
-        where: whereConditions,
-        skip: skip > 0 ? skip : 0,
-        take: query.limit,
-        order: { createdAt: 'DESC' }
-      }),
+      this.userRep.aggregate(aggregationPipeline).toArray(),
       this.countDocuments()
     ]);
 
     const totalPages = Math.ceil(totalCount / query.limit);
 
-    const userResponse: UserResponseDto[] = await Promise.all(
-      users.map(async (user) => {
-        const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
-        // if (
-        //   twitterUser.followers < lowerLimit ||
-        //   (twitterUser.followers > upperLimit || twitterUser.verificationStatus)
-        // )
-        // return;
-        const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
-        const { password, _id, ...userData } = user;
-        const image = twitterUser.avatar.replace('normal', '400x400');
-        userData.twitterInfo = {
-          twitterPoints: twitterUser.twitterPoints,
-          royaltyPoints: twitterUser.royaltyPoints,
-          totalPoints: twitterUser.totalPoints,
-          avatar: image,
-          coverImage: twitterUser.coverImage,
-          verificationStatus: twitterUser.verificationStatus,
-          followers: twitterUser.followers,
-          following: twitterUser.following,
-          externalUrl: twitterUser.externalUrl,
-          numberOfTweets: twitterUser.numberOfTweets,
-          creationDate: twitterUser.creationDate
-        };
-        userData.experience = userExperience;
+    // const userResponse: UserResponseDto[] = await Promise.all(
+    //   users.map(async (user) => {
+    //     const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
+    //     // if (
+    //     //   twitterUser.followers < lowerLimit ||
+    //     //   (twitterUser.followers > upperLimit || twitterUser.verificationStatus)
+    //     // )
+    //     // return;
+    //     const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
+    //     const { password, _id, ...userData } = user;
+    //     const image = twitterUser.avatar.replace('normal', '400x400');
+    //     userData.twitterInfo = {
+    //       twitterPoints: twitterUser.twitterPoints,
+    //       royaltyPoints: twitterUser.royaltyPoints,
+    //       totalPoints: twitterUser.totalPoints,
+    //       avatar: image,
+    //       coverImage: twitterUser.coverImage,
+    //       verificationStatus: twitterUser.verificationStatus,
+    //       followers: twitterUser.followers,
+    //       following: twitterUser.following,
+    //       externalUrl: twitterUser.externalUrl,
+    //       numberOfTweets: twitterUser.numberOfTweets,
+    //       creationDate: twitterUser.creationDate
+    //     };
+    //     userData.experience = userExperience;
 
-        return userData;
-      })
-    );
-
-    // let userResponse: UserResponseDto[] = [];
-    // for (let i = 0; i < users.length; i++) {
-    //   const twitterUser = await this.twitterService.findTwitterUsersById(users[i].userId);
-    //   const { password, _id, ...userData } = users[i];
-    //   userData.twitterInfo = {
-    //     followers: twitterUser.follower_count,
-    //     followingCount: twitterUser.following_count,
-    //     favouritesCount: twitterUser.favourites_count,
-    //     externalUrl: twitterUser.external_url,
-    //     numberOfTweets: twitterUser.number_of_tweets,
-    //     creationDate: twitterUser.creation_date
-    //   };
-    //   userResponse.push(userData);
-    // }
+    //     return userData;
+    //   })
+    // );
 
     return {
-      users: userResponse,
+      users: users,
       page: query.page,
       pageSize: users.length,
       totalPages: totalPages,
@@ -257,79 +274,117 @@ export class UserService {
   }
 
   async findKolsTrending(query: RequestKolsTrending) {
-    const skip = (query.page - 1) * query.limit;
+    const skip = query.page * query.limit;
 
     // query conditions
     const whereConditions: any = {};
-    // if (query.username) {
-    //   whereConditions.username = query.username;
-    // }
+    if (query.type) {
+      whereConditions.type = { $eq: query.type };
+    }
 
-    // if (query.role) {
-    //   whereConditions.role = query.role;
-    // }
-    const [twitterUsers, totalCount] = await Promise.all([
-      this.twitterUsersRep.find({
-        where: whereConditions,
-        skip: skip > 0 ? skip : 0,
-        take: query.limit,
-        order: { totalPoints: 'DESC' }
-      }),
+    const aggregationPipeline = [
+      {
+        $lookup: {
+          from: 'twitter-users',
+          localField: 'userId',
+          foreignField: 'userId',
+          as: 'twitterInfo'
+        }
+      },
+      { $unwind: '$twitterInfo' },
+      {
+        $match: whereConditions
+      },
+      {
+        $project: {
+          _id: 0,
+          password: 0,
+          'twitterInfo._id': 0
+        }
+      },
+      // { $sort: { 'twitterInfo.totalPoints': -1 } },
+      { $skip: skip > 0 ? skip : 0 },
+      { $limit: query.limit }
+    ];
+
+    const [users, totalCount] = await Promise.all([
+      this.userRep.aggregate(aggregationPipeline).toArray(),
       this.countDocuments()
     ]);
 
     const totalPages = Math.ceil(totalCount / query.limit);
 
-    const userResponse = await Promise.all(
-      twitterUsers.map(async (user) => {
-        const { _id, ...userData } = user;
-        return userData;
-      })
-    );
-
     return {
-      users: userResponse,
+      users: users,
       page: query.page,
-      pageSize: twitterUsers.length,
+      pageSize: users.length,
       totalPages: totalPages,
       totalItems: totalCount
     };
   }
 
   async findTopKolsRanking(query: RequestKolsRanking): Promise<UserListResponseDto> {
-    console.log('query:', query);
+    // console.log('query:', query);
+    const skip = query.page * query.limit;
 
     const tagsQuery: any = typeof query.tags === 'string' ? [query.tags] : query.tags;
+    const whereConditions: any = {};
 
-    const twitterUsers = await this.twitterUsersRep.find({
-      // skip: skip > 0 ? skip : 0,
-      // take: query.limit,
-      order: { totalPoints: 'DESC' }
-    });
+    whereConditions['twitterInfo.followers'] = {
+      $gte: query.lowerLimit,
+      $lte: query.upperLimit
+    };
+    if (query.type) {
+      whereConditions.type = { $eq: query.type };
+    }
 
-    let totalCount = 0;
-    const userResponse = await Promise.all(
-      twitterUsers.map(async (user) => {
-        const userInfo = await this.findByUserId(user.userId);
-        if (
-          (query.verification === undefined || userInfo.twitterInfo?.verificationStatus === query.verification) &&
-          (query.lowerLimit === undefined || userInfo.twitterInfo?.followers >= query.lowerLimit) &&
-          (query.upperLimit === undefined || userInfo.twitterInfo?.followers <= query.upperLimit) &&
-          (query.tags === undefined ||
-            query.tags.length === 0 ||
-            tagsQuery.every((tag) => userInfo.tags.includes(tag))) &&
-          (query.type === undefined || userInfo.type == query.type) &&
-          totalCount <= query.top
-        ) {
-          totalCount++;
-          return userInfo;
+    if (query.verification) {
+      whereConditions['twitterInfo.verificationStatus'] = query.verification;
+    }
+
+    if (tagsQuery) {
+      whereConditions.tags = { $in: tagsQuery };
+    }
+
+    if (query.review) {
+      let review = query.review.split('-').map(Number);
+      whereConditions.review = { $gte: review[0], $lte: review[1] };
+    }
+
+    const aggregationPipeline = [
+      {
+        $lookup: {
+          from: 'twitter-users',
+          localField: 'userId',
+          foreignField: 'userId',
+          as: 'twitterInfo'
         }
-      })
-    );
-    const filteredUserResponse = userResponse.filter((user) => user !== undefined);
+      },
+      { $unwind: '$twitterInfo' },
+      {
+        $match: whereConditions
+      },
+      {
+        $project: {
+          _id: 0,
+          password: 0,
+          'twitterInfo._id': 0
+        }
+      },
+      { $sort: { 'twitterInfo.totalPoints': -1 } },
+      { $skip: skip > 0 ? skip : 0 },
+      { $limit: query.limit > query.top ? query.top : query.limit }
+    ];
 
+    const users = await this.userRep.aggregate(aggregationPipeline).toArray();
+
+    const totalPages = Math.ceil(query.top / query.limit);
     return {
-      users: filteredUserResponse
+      users,
+      page: query.page,
+      pageSize: users.length,
+      totalPages: totalPages,
+      totalItems: query.top
     };
   }
 
@@ -366,12 +421,11 @@ export class UserService {
       const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
       const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
       const { password, _id, ...userData } = user;
-      const image = twitterUser.avatar.replace('normal', '400x400');
       userData.twitterInfo = {
         twitterPoints: twitterUser.twitterPoints,
         royaltyPoints: twitterUser.royaltyPoints,
         totalPoints: twitterUser.totalPoints,
-        avatar: image,
+        avatar: twitterUser.avatar,
         coverImage: twitterUser.coverImage,
         verificationStatus: twitterUser.verificationStatus,
         followers: twitterUser.followers,
@@ -396,15 +450,18 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(`User with username ${username} not found.`);
     }
-    const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
-    const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
+    let [twitterUser, userExperience] = await Promise.all([
+      this.twitterUsersRep.findOne({ where: { userId: user.userId } }),
+      this.userExperienceRep.find({ where: { userId: user.userId } })
+    ]);
+    // let userTweet = await this.twitterService.getUserTweets({ username });
+    let userTweet = undefined;
     const { password, _id, ...userData } = user;
-    const image = twitterUser.avatar.replace('normal', '400x400');
     userData.twitterInfo = {
       twitterPoints: twitterUser.twitterPoints,
       royaltyPoints: twitterUser.royaltyPoints,
       totalPoints: twitterUser.totalPoints,
-      avatar: image,
+      avatar: twitterUser.avatar,
       coverImage: twitterUser.coverImage,
       verificationStatus: twitterUser.verificationStatus,
       followers: twitterUser.followers,
@@ -420,12 +477,30 @@ export class UserService {
     // if (usernameTwitter) {
     //   userTweet = await this.twitterService.getUserTweets({ username: usernameTwitter.username });
     // }
-    let userTweet = await this.twitterService.getUserTweets({ username });
-    if (!userTweet || !userTweet?.results) userTweet.results = [];
-    console.log('userTweet.results:', userTweet.results);
+    let userTweets = [];
+    if (userTweet && userTweet?.results) userTweets = userTweet.results;
+    // console.log('userTweet.results:', userTweet.results);
     return {
       ...userData,
-      posts: userTweet.results.slice(0, 4)
+      posts: userTweets.slice(0, 4)
+    };
+  }
+
+  async getTwitterUserPost(username: string) {
+    const user = await this.userRep.findOne({
+      where: {
+        username
+      }
+    });
+    if (!user) {
+      throw new NotFoundException(`User with username ${username} not found.`);
+    }
+    let userTweets = await this.twitterService.getUserTweets({ username });
+    let userPosts = [];
+    if (userTweets && userTweets?.results) userPosts = userTweets.results;
+    return {
+      username,
+      posts: userPosts.slice(0, 5)
     };
   }
 
@@ -441,12 +516,11 @@ export class UserService {
     const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
     const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
     const { password, _id, ...userData } = user;
-    const image = twitterUser.avatar.replace('normal', '400x400');
     userData.twitterInfo = {
       twitterPoints: twitterUser.twitterPoints,
       royaltyPoints: twitterUser.royaltyPoints,
       totalPoints: twitterUser.totalPoints,
-      avatar: image,
+      avatar: twitterUser.avatar,
       coverImage: twitterUser.coverImage,
       verificationStatus: twitterUser.verificationStatus,
       followers: twitterUser.followers,
