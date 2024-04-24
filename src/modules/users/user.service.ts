@@ -168,8 +168,8 @@ export class UserService {
     // query conditions
     const whereConditions: any = {};
     whereConditions['twitterInfo.followers'] = {
-      $gte: query.lowerLimit,
-      $lte: query.upperLimit
+      $gte: query.lowerLimit ? query.lowerLimit : 0,
+      $lte: query.upperLimit ? query.upperLimit : 10000000
     };
 
     if (query.username) {
@@ -324,15 +324,15 @@ export class UserService {
   }
 
   async findTopKolsRanking(query: RequestKolsRanking): Promise<UserListResponseDto> {
-    // console.log('query:', query);
+    console.log('query:', query);
     const skip = query.page * query.limit;
 
     const tagsQuery: any = typeof query.tags === 'string' ? [query.tags] : query.tags;
     const whereConditions: any = {};
 
     whereConditions['twitterInfo.followers'] = {
-      $gte: query.lowerLimit,
-      $lte: query.upperLimit
+      $gte: query.lowerLimit ? query.lowerLimit : 0,
+      $lte: query.upperLimit ? query.upperLimit : 10000000
     };
     if (query.type) {
       whereConditions.type = { $eq: query.type };
