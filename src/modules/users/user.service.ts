@@ -302,7 +302,7 @@ export class UserService {
           'twitterInfo._id': 0
         }
       },
-      // { $sort: { 'twitterInfo.totalPoints': -1 } },
+      { $sort: { 'twitterInfo.followers': -1 } },
       { $skip: skip > 0 ? skip : 0 },
       { $limit: query.limit }
     ];
