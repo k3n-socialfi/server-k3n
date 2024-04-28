@@ -51,6 +51,12 @@ export class Jobs extends AbstractEntity {
   @Column({ nullable: true, default: [] })
   currency: string[];
 
+  @Column({ nullable: true, default: [] })
+  offers: string[];
+
+  @Column({ nullable: true, default: null })
+  subscriber: string;
+
   @BeforeInsert()
   async beforeInsert() {
     if (!this.tags) this.tags = [];
@@ -64,5 +70,8 @@ export class Jobs extends AbstractEntity {
     if (!this.review) this.review = 0;
     if (!this.rating) this.rating = 4;
     if (!this.paymentMethod) this.paymentMethod = null;
+
+    if (!this.offers) this.offers = [];
+    if (!this.subscriber) this.subscriber = null;
   }
 }
