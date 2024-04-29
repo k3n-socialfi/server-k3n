@@ -205,6 +205,33 @@ export class JobsService {
     return res;
   }
 
+  async getAllOfferByUsername(username: string) {
+    const userId = (await this.userService.findByUserName(username)).userId;
+
+    const jobs = await this.jobsRep.find({
+      where: {
+        creator: userId,
+        subscriber: null
+      }
+    });
+
+    const res = await Promise.all(
+      jobs.map(async (job) => {
+        const listOffers = await Promise.all(
+          job.offers.map(async (userId) => {
+            return this.userService.findByUserId(userId);
+          })
+        );
+        const { _id, ...jobData } = job;
+        return {
+          job: jobData,
+          listOffers
+        };
+      })
+    );
+    return res;
+  }
+
   async getMyOffer(userId: string) {
     const jobs = await this.jobsRep
       .aggregate([

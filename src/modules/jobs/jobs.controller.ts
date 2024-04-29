@@ -128,6 +128,20 @@ export class JobsController {
     };
   }
 
+  @Get('/list-offers/:username')
+  // @UseGuards(AccessTokenGuard)
+  public async getOffersByUserName(
+    // @Req() req: Request
+    @Param('username') username: string
+  ) {
+    // const userObject = JSON.parse(JSON.stringify(req.user));
+    return {
+      code: 201,
+      message: 'Get all offer by username successful',
+      data: await this.jobsService.getAllOfferByUsername(username)
+    };
+  }
+
   @Get('/my-offers')
   @UseGuards(AccessTokenGuard)
   public async getMyOffer(
