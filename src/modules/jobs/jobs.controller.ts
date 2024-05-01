@@ -5,6 +5,7 @@ import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { CreateJobDto } from './dto/request/create-job.dto';
 import { RequestJobsQuery } from './dto/request/query-jobs.dto';
 import { Request } from 'express';
+import { AcceptOfferDto } from './dto/request/accept-offer.dto';
 
 @Controller('jobs')
 @ApiTags('Job')
@@ -25,6 +26,19 @@ export class JobsController {
         limit,
         ...query
       })
+    };
+  }
+
+  @Get('/popular')
+  public async getPopularJobs() {
+    // console.log('req:', req.user)
+    // let { page, limit } = query;
+    // page = page ? +page : 0;
+    // limit = limit ? +limit : 10;
+    return {
+      code: 200,
+      message: 'Get popular jobs successful',
+      data: await this.jobsService.findPopularJobs()
     };
   }
 
@@ -71,6 +85,60 @@ export class JobsController {
       code: 201,
       message: 'Create job by user successful',
       data: await this.jobsService.createJob(userObject.sub, request)
+    };
+  }
+
+  @Post('/:jobId/offer')
+  @UseGuards(AccessTokenGuard)
+  public async offerJobs(
+    @Req() req: Request,
+    @Param('jobId') jobId: string
+    // @Param('userId') userId: string
+  ) {
+    const userObject = JSON.parse(JSON.stringify(req.user));
+    return {
+      code: 201,
+      message: 'Offer job successful',
+      data: await this.jobsService.offerJobs(userObject?.sub, jobId)
+    };
+  }
+
+  @Post('offer/accept')
+  @UseGuards(AccessTokenGuard)
+  public async acceptOffer(@Req() req: Request, @Body() body: AcceptOfferDto) {
+    const userObject = JSON.parse(JSON.stringify(req.user));
+    return {
+      code: 201,
+      message: 'Accept offer job successful',
+      data: await this.jobsService.acceptOffer(userObject?.sub, body.jobId, body.subscriber)
+    };
+  }
+
+  @Get('/list-offers')
+  @UseGuards(AccessTokenGuard)
+  public async getOffers(
+    @Req() req: Request
+    // @Param('userId') userId: string
+  ) {
+    const userObject = JSON.parse(JSON.stringify(req.user));
+    return {
+      code: 201,
+      message: 'Get all offer successful',
+      data: await this.jobsService.getAllOffer(userObject?.sub)
+    };
+  }
+
+  @Get('/my-offers')
+  @UseGuards(AccessTokenGuard)
+  public async getMyOffer(
+    @Req() req: Request
+    // @Param('userId') userId: string
+  ) {
+    const userObject = JSON.parse(JSON.stringify(req.user));
+    return {
+      code: 201,
+      message: 'Get my offer successful',
+      data: await this.jobsService.getMyOffer(userObject?.sub)
     };
   }
 }

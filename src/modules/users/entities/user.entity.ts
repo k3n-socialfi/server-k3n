@@ -19,6 +19,44 @@ export enum UserType {
   Threador = 'Threador'
 }
 
+export enum UserTags {
+  NFT = 'NFT',
+  DeFi = 'DeFi',
+  NFTfi = 'NFTfi',
+  GameFi = 'GameFi',
+  DAO = 'DAO',
+  Infrastructure = 'Infrastructure',
+  Stablecoin = 'Stablecoin',
+  Automation = 'Automation',
+  MemeCoin = 'MemeCoin',
+  GambleFi = 'GambleFi',
+  Tool = 'Tool',
+  SocialFi = 'SocialFi',
+  AI = 'AI',
+  Inscription = 'Inscription',
+  Ordinals = 'Ordinals',
+  RWA = 'RWA',
+  ERC404 = 'ERC404',
+  Other = 'Other'
+}
+
+export enum JobTittle {
+  BlockchainDeveloper = 'Blockchain Developer',
+  FrontEndDeveloper = 'FrontEnd Developer',
+  BackendDeveloper = 'Backend Developer',
+  Freelance = 'Freelance',
+  FullStackDeveloper = 'FullStack Developer',
+  DataEngineer = 'Data Engineer',
+  KOLs = 'KOLs',
+  ProducerManager = 'Producer Manager',
+  CEO = 'CEO',
+  CMO = 'CMO',
+  CoFounder = 'Co-Founder',
+  MarketingManager = 'Marketing Manager',
+  Marketing = 'Marketing',
+  CommunityManage = 'Community Manager'
+}
+
 @Entity('users')
 export class User extends AbstractEntity {
   // @ObjectIdColumn({ name: '_id' })
@@ -65,6 +103,15 @@ export class User extends AbstractEntity {
 
   @Column({ nullable: true, default: [] })
   socialProfiles: SocialNetwork[];
+
+  @Column({ nullable: true, default: [] })
+  tags: UserTags[];
+
+  @Column({ nullable: true })
+  jobTittle: JobTittle;
+
+  @Column({ nullable: true })
+  review: number;
 
   // @Column({ nullable: true, default: 0 })
   // twitterPoints: number;

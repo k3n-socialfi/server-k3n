@@ -9,14 +9,14 @@ import {
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { BlockchainWallet, SocialNetwork, User, UserType } from './entities/user.entity';
+import { MongoRepository, Repository } from 'typeorm';
+import { BlockchainWallet, JobTittle, SocialNetwork, User, UserTags, UserType } from './entities/user.entity';
 import { CreateUserByAdminDto, CreateUserWithTwitterDto, CreateUserWithWalletDto } from './dto/request/create-user.dto';
 import { ErrorsCodes, ErrorsMap } from '@common/constants/respond-errors';
 import { InternalUserResponseDto, UserListResponseDto, UserResponseDto } from './dto/response/user-response.dto';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Role } from '@common/constants/enum';
-import { RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
+import { RequestKolsRanking, RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
 import { UpdateUserByAdminDto } from './dto/request/admin-update-user.dto';
 import { TwitterService } from '../twitter/twitter.service';
 import { Cache } from 'cache-manager';
@@ -28,6 +28,7 @@ import { CreateUserExperienceDto, UpdateUserExperienceDto } from './dto/request/
 import { UserExperiences } from './entities/experience.entity';
 import { UpdateUserDto } from './dto/request/update-user.dto';
 import { Timeout } from '@nestjs/schedule';
+import { listUser } from './dto/request/import-user.dto';
 
 @Injectable()
 export class UserService {
@@ -35,9 +36,9 @@ export class UserService {
     private readonly httpService: HttpService,
     @Inject(forwardRef(() => TwitterService))
     private readonly twitterService: TwitterService,
-    @InjectRepository(User) private userRep: Repository<User>,
-    @InjectRepository(UserExperiences) private userExperienceRep: Repository<UserExperiences>,
-    @InjectRepository(TwitterUsers) private twitterUsersRep: Repository<TwitterUsers>,
+    @InjectRepository(User) private userRep: MongoRepository<User>,
+    @InjectRepository(UserExperiences) private userExperienceRep: MongoRepository<UserExperiences>,
+    @InjectRepository(TwitterUsers) private twitterUsersRep: MongoRepository<TwitterUsers>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
@@ -45,73 +46,132 @@ export class UserService {
   // @Timeout(0)
   async initUser() {
     console.log('Start run user init job !');
-    const listUser = [];
-    for (let i = 0; i < listUser.length; i++) {
-      console.log('i:', i);
-      console.log('listUser[i]:', listUser[i]);
-      const twUser = await this.twitterService.findTwitterUsersByUsername(listUser[i]);
-      const userTypes = Object.values(UserType);
-      const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
-      const jobTile = [
-        'Blockchain Developer',
-        'FrontEnd Developer',
-        'Backend Developer',
-        'Freelance',
-        'FullStack Developer',
-        'Data Engineer',
-        'KOLs',
-        'Producer Manager',
-        'CEO',
-        'CMO',
-        'Co-Founder',
-        'Marketing Manager',
-        'Marketing',
-        'Community Manager'
-      ];
-      const randomJob = Math.floor(Math.random() * jobTile.length);
-      const social = new SocialNetwork();
-      social.social = 'twitter';
-      social.username = listUser[i];
-      const userCreated = {
-        userId: twUser.user_id,
-        username: twUser.username,
-        password: null,
-        fullName: twUser?.name,
-        avatar: twUser?.profile_pic_url,
-        coverImage: twUser?.profile_banner_url,
-        bio: twUser?.description,
-        role: Role.User,
-        socialProfiles: [social],
-        type: randomUserType,
-        jobTitle: jobTile[randomJob]
-      };
-      const saveUser = this.userRep.create(userCreated);
+    // const listUser = ['Ozi_Eth7'];
+    try {
+      for (let i = 0; i < listUser.length; i++) {
+        console.log('i:', i);
+        console.log('listUser[i]:', listUser[i]);
+        const twUser = await this.twitterService.findTwitterUsersByUsername(listUser[i]);
+        if (!twUser || !twUser?.user_id || !twUser.username) continue;
+        // console.log('twUser:', twUser);
+        const userTypes = Object.values(UserType);
+        const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
 
-      const twitterUserCreated = {
-        userId: twUser.user_id,
-        username: twUser.username,
-        fullName: twUser?.name,
-        avatar: twUser?.profile_pic_url,
-        coverImage: twUser?.profile_banner_url,
-        bio: twUser?.description,
-        verificationStatus: twUser?.is_blue_verified,
-        followers: twUser?.follower_count,
-        following: twUser?.following_count,
-        externalUrl: twUser?.external_url,
-        numberOfTweets: twUser?.number_of_tweets,
-        creationDate: twUser?.creation_date
-      };
-      const saveTwitterUser = this.twitterUsersRep.create(twitterUserCreated);
+        const jobTile = Object.values(JobTittle);
+        const randomJob = Math.floor(Math.random() * jobTile.length);
 
-      await Promise.all([this.userRep.save(saveUser), this.twitterUsersRep.save(saveTwitterUser)]);
+        const tags = Object.values(UserTags);
+        const randomNumber = Math.floor(Math.random() * tags.length);
+        const randomTags = [tags[randomNumber], tags[randomNumber + 1], tags[randomNumber + 2]];
+
+        const randomReview = Math.random() + 4;
+        // Fix to one decimal place
+        const review = Number(randomReview.toFixed(1));
+
+        // const price = Number((Math.random() * 5000).toFixed(0));
+
+        const social = new SocialNetwork();
+        social.social = 'twitter';
+        social.username = listUser[i];
+        const userCreated = {
+          userId: twUser.user_id,
+          username: twUser.username,
+          password: null,
+          fullName: twUser?.name,
+          avatar: twUser?.profile_pic_url,
+          coverImage: twUser?.profile_banner_url,
+          bio: twUser?.description,
+          role: Role.User,
+          socialProfiles: [social],
+          type: randomUserType,
+          jobTittle: jobTile[randomJob],
+          tags: randomTags,
+          review: review
+          // price: price
+        };
+        const saveUser = this.userRep.create(userCreated);
+        console.log('saveUser:', saveUser);
+
+        const twitterUserCreated = {
+          userId: twUser.user_id,
+          username: twUser.username,
+          fullName: twUser?.name,
+          avatar: twUser?.profile_pic_url,
+          coverImage: twUser?.profile_banner_url,
+          bio: twUser?.description,
+          verificationStatus: twUser?.is_blue_verified,
+          followers: twUser?.follower_count,
+          following: twUser?.following_count,
+          externalUrl: twUser?.external_url,
+          numberOfTweets: twUser?.number_of_tweets,
+          creationDate: twUser?.creation_date
+        };
+        const saveTwitterUser = this.twitterUsersRep.create(twitterUserCreated);
+
+        await Promise.all([this.userRep.save(saveUser), this.twitterUsersRep.save(saveTwitterUser)]);
+      }
+      console.log('End run user init job !');
+    } catch (err) {
+      console.log('err:', err);
     }
-    console.log('End run user init job !');
   }
-  async findAllUsers(query: RequestUserQuery): Promise<UserListResponseDto> {
-    const skip = (query.page - 1) * query.limit;
 
+  // @Timeout(0)
+  async updateTags() {
+    const users = await this.userRep.find();
+    try {
+      await Promise.all(
+        users.map(async (user) => {
+          // random
+          const userTypes = Object.values(UserType);
+          const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
+
+          const jobTittle = Object.values(JobTittle);
+          const randomJob = jobTittle[Math.floor(Math.random() * jobTittle.length)];
+
+          const tags = Object.values(UserTags);
+          const randomNumber = Math.floor(Math.random() * tags.length);
+          const randomTags = [tags[randomNumber], tags[randomNumber + 1], tags[randomNumber + 2]];
+
+          const randomReview = Math.random() + 4;
+          // Fix to one decimal place
+          const review = Number(randomReview.toFixed(1));
+
+          console.log('user:', user.username);
+          if (!user.tags) user.tags = randomTags;
+          if (!user.jobTittle) user.jobTittle = randomJob;
+          if (!user.type) user.type = randomUserType;
+          if (user.review < 4 || user.review > 5) user.review = review;
+          await this.userRep.update({ userId: user.userId }, user);
+        })
+      );
+    } catch (err) {
+      console.log('err:', err);
+    }
+  }
+
+  // @Timeout(0)
+  // async deleteReCord() {
+  //   const id = '66255f9789bcfa017427c561';
+  //   console.log('id:', id);
+  //   const results = await this.userRep
+  //     .createQueryBuilder()
+  //     .delete()
+  //     .where('_id > :id', { id }) // Assuming id is a string representing ObjectId
+  //     .execute();
+  // }
+
+  async findAllUsers(query: RequestUserQuery): Promise<UserListResponseDto> {
+    const skip = query.page * query.limit;
+
+    const tagsQuery: any = typeof query.tags === 'string' ? [query.tags] : query.tags;
     // query conditions
     const whereConditions: any = {};
+    whereConditions['twitterInfo.followers'] = {
+      $gte: query.lowerLimit ? query.lowerLimit : 0,
+      $lte: query.upperLimit ? query.upperLimit : 10000000
+    };
+
     if (query.username) {
       whereConditions.username = query.username;
     }
@@ -121,74 +181,86 @@ export class UserService {
     }
 
     if (query.type) {
-      whereConditions.type = query.type;
+      whereConditions.type = { $eq: query.type };
     }
 
-    // if (query.lowerLimit) {
-    //   whereConditions.lowerLimit = query.lowerLimit;
-    // }
+    if (query.verification) {
+      whereConditions['twitterInfo.verificationStatus'] = query.verification;
+    }
 
-    // if (query.upperLimit) {
-    //   whereConditions.upperLimit = query.upperLimit;
-    // }
+    if (tagsQuery) {
+      whereConditions.tags = { $in: tagsQuery };
+    }
+
+    if (query.review) {
+      let review = query.review.split('-').map(Number);
+      whereConditions.review = { $gte: review[0], $lte: review[1] };
+    }
+
+    const aggregationPipeline = [
+      {
+        $lookup: {
+          from: 'twitter-users',
+          localField: 'userId',
+          foreignField: 'userId',
+          as: 'twitterInfo'
+        }
+      },
+      { $unwind: '$twitterInfo' },
+      {
+        $match: whereConditions
+      },
+      {
+        $project: {
+          _id: 0,
+          password: 0,
+          'twitterInfo._id': 0
+        }
+      },
+      // { $sort: { 'twitterInfo.totalPoints': -1 } },
+      { $skip: skip > 0 ? skip : 0 },
+      { $limit: query.limit }
+    ];
+
     const [users, totalCount] = await Promise.all([
-      this.userRep.find({
-        where: whereConditions,
-        skip: skip > 0 ? skip : 0,
-        take: query.limit,
-        order: { createdAt: 'DESC' }
-      }),
+      this.userRep.aggregate(aggregationPipeline).toArray(),
       this.countDocuments()
     ]);
 
     const totalPages = Math.ceil(totalCount / query.limit);
 
-    const userResponse: UserResponseDto[] = await Promise.all(
-      users.map(async (user) => {
-        const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
-        // if (
-        //   twitterUser.followers < lowerLimit ||
-        //   (twitterUser.followers > upperLimit || twitterUser.verificationStatus)
-        // )
-        // return;
-        const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
-        const { password, _id, ...userData } = user;
-        userData.twitterInfo = {
-          twitterPoints: twitterUser.twitterPoints,
-          royaltyPoints: twitterUser.royaltyPoints,
-          totalPoints: twitterUser.totalPoints,
-          avatar: twitterUser.avatar,
-          coverImage: twitterUser.coverImage,
-          verificationStatus: twitterUser.verificationStatus,
-          followers: twitterUser.followers,
-          following: twitterUser.following,
-          externalUrl: twitterUser.externalUrl,
-          numberOfTweets: twitterUser.numberOfTweets,
-          creationDate: twitterUser.creationDate
-        };
-        userData.experience = userExperience;
+    // const userResponse: UserResponseDto[] = await Promise.all(
+    //   users.map(async (user) => {
+    //     const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
+    //     // if (
+    //     //   twitterUser.followers < lowerLimit ||
+    //     //   (twitterUser.followers > upperLimit || twitterUser.verificationStatus)
+    //     // )
+    //     // return;
+    //     const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
+    //     const { password, _id, ...userData } = user;
+    //     const image = twitterUser.avatar.replace('normal', '400x400');
+    //     userData.twitterInfo = {
+    //       twitterPoints: twitterUser.twitterPoints,
+    //       royaltyPoints: twitterUser.royaltyPoints,
+    //       totalPoints: twitterUser.totalPoints,
+    //       avatar: image,
+    //       coverImage: twitterUser.coverImage,
+    //       verificationStatus: twitterUser.verificationStatus,
+    //       followers: twitterUser.followers,
+    //       following: twitterUser.following,
+    //       externalUrl: twitterUser.externalUrl,
+    //       numberOfTweets: twitterUser.numberOfTweets,
+    //       creationDate: twitterUser.creationDate
+    //     };
+    //     userData.experience = userExperience;
 
-        return userData;
-      })
-    );
-
-    // let userResponse: UserResponseDto[] = [];
-    // for (let i = 0; i < users.length; i++) {
-    //   const twitterUser = await this.twitterService.findTwitterUsersById(users[i].userId);
-    //   const { password, _id, ...userData } = users[i];
-    //   userData.twitterInfo = {
-    //     followers: twitterUser.follower_count,
-    //     followingCount: twitterUser.following_count,
-    //     favouritesCount: twitterUser.favourites_count,
-    //     externalUrl: twitterUser.external_url,
-    //     numberOfTweets: twitterUser.number_of_tweets,
-    //     creationDate: twitterUser.creation_date
-    //   };
-    //   userResponse.push(userData);
-    // }
+    //     return userData;
+    //   })
+    // );
 
     return {
-      users: userResponse,
+      users: users,
       page: query.page,
       pageSize: users.length,
       totalPages: totalPages,
@@ -202,75 +274,117 @@ export class UserService {
   }
 
   async findKolsTrending(query: RequestKolsTrending) {
-    const skip = (query.page - 1) * query.limit;
+    const skip = query.page * query.limit;
 
     // query conditions
     const whereConditions: any = {};
-    // if (query.username) {
-    //   whereConditions.username = query.username;
-    // }
+    if (query.type) {
+      whereConditions.type = { $eq: query.type };
+    }
 
-    // if (query.role) {
-    //   whereConditions.role = query.role;
-    // }
-    const [twitterUsers, totalCount] = await Promise.all([
-      this.twitterUsersRep.find({
-        where: whereConditions,
-        skip: skip > 0 ? skip : 0,
-        take: query.limit,
-        order: { totalPoints: 'DESC' }
-      }),
+    const aggregationPipeline = [
+      {
+        $lookup: {
+          from: 'twitter-users',
+          localField: 'userId',
+          foreignField: 'userId',
+          as: 'twitterInfo'
+        }
+      },
+      { $unwind: '$twitterInfo' },
+      {
+        $match: whereConditions
+      },
+      {
+        $project: {
+          _id: 0,
+          password: 0,
+          'twitterInfo._id': 0
+        }
+      },
+      { $sort: { 'twitterInfo.followers': -1 } },
+      { $skip: skip > 0 ? skip : 0 },
+      { $limit: query.limit }
+    ];
+
+    const [users, totalCount] = await Promise.all([
+      this.userRep.aggregate(aggregationPipeline).toArray(),
       this.countDocuments()
     ]);
 
     const totalPages = Math.ceil(totalCount / query.limit);
 
-    const userResponse = await Promise.all(
-      twitterUsers.map(async (user) => {
-        const { _id, ...userData } = user;
-        return userData;
-      })
-    );
-
     return {
-      users: userResponse,
+      users: users,
       page: query.page,
-      pageSize: twitterUsers.length,
+      pageSize: users.length,
       totalPages: totalPages,
       totalItems: totalCount
     };
   }
 
-  async findTopKolsRanking(query: RequestKolsTrending): Promise<UserListResponseDto> {
-    const skip = (query.page - 1) * query.limit;
+  async findTopKolsRanking(query: RequestKolsRanking): Promise<UserListResponseDto> {
+    console.log('query:', query);
+    const skip = query.page * query.limit;
 
-    // query conditions
+    const tagsQuery: any = typeof query.tags === 'string' ? [query.tags] : query.tags;
     const whereConditions: any = {};
-    const [twitterUsers, totalCount] = await Promise.all([
-      this.twitterUsersRep.find({
-        where: whereConditions,
-        skip: skip > 0 ? skip : 0,
-        take: query.limit,
-        order: { totalPoints: 'DESC' }
-      }),
-      this.countDocuments()
-    ]);
 
-    const totalPages = Math.ceil(totalCount / query.limit);
+    whereConditions['twitterInfo.followers'] = {
+      $gte: query.lowerLimit ? query.lowerLimit : 0,
+      $lte: query.upperLimit ? query.upperLimit : 10000000
+    };
+    if (query.type) {
+      whereConditions.type = { $eq: query.type };
+    }
 
-    const userResponse = await Promise.all(
-      twitterUsers.map(async (user) => {
-        const userInfo = await this.findByUserId(user.userId);
-        return userInfo;
-      })
-    );
+    if (query.verification) {
+      whereConditions['twitterInfo.verificationStatus'] = query.verification;
+    }
 
+    if (tagsQuery) {
+      whereConditions.tags = { $in: tagsQuery };
+    }
+
+    if (query.review) {
+      let review = query.review.split('-').map(Number);
+      whereConditions.review = { $gte: review[0], $lte: review[1] };
+    }
+
+    const aggregationPipeline = [
+      {
+        $lookup: {
+          from: 'twitter-users',
+          localField: 'userId',
+          foreignField: 'userId',
+          as: 'twitterInfo'
+        }
+      },
+      { $unwind: '$twitterInfo' },
+      {
+        $match: whereConditions
+      },
+      {
+        $project: {
+          _id: 0,
+          password: 0,
+          'twitterInfo._id': 0
+        }
+      },
+      { $sort: { 'twitterInfo.totalPoints': -1 } },
+      { $skip: skip > 0 ? skip : 0 },
+      { $limit: query.limit > query.top ? query.top : query.limit }
+    ];
+
+    const users = await this.userRep.aggregate(aggregationPipeline).toArray();
+
+    const totalPages = Math.ceil(query.top / query.limit);
     return {
-      users: userResponse,
+      users,
       page: query.page,
-      pageSize: twitterUsers.length,
+      pageSize: users.length,
       totalPages: totalPages,
-      totalItems: totalCount
+      totalItems: query.top
     };
   }
 
@@ -336,8 +450,12 @@ export class UserService {
     if (!user) {
       throw new NotFoundException(`User with username ${username} not found.`);
     }
-    const twitterUser = await this.twitterUsersRep.findOne({ where: { userId: user.userId } });
-    const userExperience = await this.userExperienceRep.find({ where: { userId: user.userId } });
+    let [twitterUser, userExperience] = await Promise.all([
+      this.twitterUsersRep.findOne({ where: { userId: user.userId } }),
+      this.userExperienceRep.find({ where: { userId: user.userId } })
+    ]);
+    // let userTweet = await this.twitterService.getUserTweets({ username });
+    let userTweet = undefined;
     const { password, _id, ...userData } = user;
     userData.twitterInfo = {
       twitterPoints: twitterUser.twitterPoints,
@@ -359,11 +477,30 @@ export class UserService {
     // if (usernameTwitter) {
     //   userTweet = await this.twitterService.getUserTweets({ username: usernameTwitter.username });
     // }
-    let userTweet = await this.twitterService.getUserTweets({ username });
-    if (!userTweet) userTweet = [];
+    let userTweets = [];
+    if (userTweet && userTweet?.results) userTweets = userTweet.results;
+    // console.log('userTweet.results:', userTweet.results);
     return {
       ...userData,
-      posts: userTweet.slice(0, 4)
+      posts: userTweets.slice(0, 4)
+    };
+  }
+
+  async getTwitterUserPost(username: string) {
+    const user = await this.userRep.findOne({
+      where: {
+        username
+      }
+    });
+    if (!user) {
+      throw new NotFoundException(`User with username ${username} not found.`);
+    }
+    let userTweets = await this.twitterService.getUserTweets({ username });
+    let userPosts = [];
+    if (userTweets && userTweets?.results) userPosts = userTweets.results;
+    return {
+      username,
+      posts: userPosts.slice(0, 5)
     };
   }
 
@@ -477,6 +614,22 @@ export class UserService {
   }
 
   async createUserWithTwitter(request: CreateUserWithTwitterDto): Promise<UserResponseDto> {
+    //
+    // random
+    const userTypes = Object.values(UserType);
+    const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
+
+    const jobTittle = Object.values(JobTittle);
+    const randomJob = jobTittle[Math.floor(Math.random() * jobTittle.length)];
+
+    const tags = Object.values(UserTags);
+    const randomNumber = Math.floor(Math.random() * tags.length);
+    const randomTags = [tags[randomNumber], tags[randomNumber + 1], tags[randomNumber + 2]];
+
+    const randomReview = Math.random() * 5;
+    const review = Number(randomReview.toFixed(1));
+    ///
+
     const { id, username, password } = request;
     const twUser = await this.twitterService.findTwitterUsersById(id);
     const social = new SocialNetwork();
@@ -491,15 +644,20 @@ export class UserService {
       coverImage: twUser?.profile_banner_url,
       bio: twUser?.description,
       role: Role.User,
-      socialProfiles: [social]
+      socialProfiles: [social],
+      tags: randomTags,
+      jobTittle: randomJob,
+      type: randomUserType,
+      review: review
     };
     const saveUser = this.userRep.create(userCreated);
 
+    const image = twUser?.profile_pic_url.avatar.replace('normal', '400x400');
     const twitterUserCreated = {
       userId: id,
       username,
       fullName: twUser?.name,
-      avatar: twUser?.profile_pic_url,
+      avatar: image,
       coverImage: twUser?.profile_banner_url,
       bio: twUser?.description,
       verificationStatus: twUser?.is_blue_verified,
@@ -565,8 +723,8 @@ export class UserService {
     if (dob) users.dob = dob;
     if (gender) users.gender = gender;
     if (location) users.location = location;
-    const { twitterInfo, experience, ...saveDate } = users;
-    await this.userRep.update({ userId }, saveDate);
+    const { twitterInfo, experience, ...saveData } = users;
+    await this.userRep.update({ userId }, saveData);
     return users;
   }
 

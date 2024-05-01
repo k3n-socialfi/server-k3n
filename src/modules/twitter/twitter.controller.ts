@@ -76,12 +76,21 @@ export class TwitterController {
     };
   }
 
+  // @Get('user/portfolio')
+  // public async getUserTwitterPortfolio(@Query(new ValidationPipe({ transform: true })) query: RequestUserTweetQuery) {
+  //   return {
+  //     code: 200,
+  //     message: "Get user's portfolio successful",
+  //     data: await this.twitterService.getUserTwitterPortfolio(query.username)
+  //   };
+  // }
+
   @Get('user/portfolio')
-  public async getUserTwitterPortfolio(@Query(new ValidationPipe({ transform: true })) query: RequestUserTweetQuery) {
+  public async getUserTwitterPortfolio(@Query('username') username: string) {
     return {
       code: 200,
       message: "Get user's portfolio successful",
-      data: await this.twitterService.getUserTwitterPortfolio(query.username)
+      data: await this.twitterService.getPortfolioByUsername(username)
     };
   }
 

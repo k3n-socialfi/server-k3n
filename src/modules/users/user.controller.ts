@@ -31,7 +31,7 @@ import { Role } from '@common/constants/enum';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { HasRoles } from '@common/decorators/has-roles.decorator';
 import { PaginationParams } from '@common/dtos/pagination.dto';
-import { RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
+import { RequestKolsRanking, RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
 import {
   SwaggerCreateUserByAdminResponseDto,
   SwaggerUpdateUserByAdminResponseDto,
@@ -102,17 +102,19 @@ export class UserController {
   // })
   // @HasRoles(Role.Admin)
   // @UseGuards(AccessTokenGuard, RolesGuard)
-  public async findTopKolsRanking(@Query(new ValidationPipe({ transform: true })) query: RequestKolsTrending) {
-    let { page, limit, type } = query;
+  public async findTopKolsRanking(@Query(new ValidationPipe({ transform: true })) query: RequestKolsRanking) {
+    let { page, limit } = query;
     page = page ? +page : 0;
-    limit = limit ? +limit : 100;
+    limit = limit ? +limit : 10;
+    // console.log('query:', query);
+
     return {
       code: 200,
       message: 'Get all user successful',
       data: await this.userService.findTopKolsRanking({
         page,
         limit,
-        type
+        ...query
       })
     };
   }
@@ -168,6 +170,19 @@ export class UserController {
       code: 200,
       message: 'Get my profile successful',
       data: await this.userService.findProfileByUsername(userObject.username)
+    };
+  }
+
+  @Get('posts/:username')
+  // @ApiResponse({
+  //   description: 'Get user\'s posts',
+  //   type: SwaggerUserResponseDto
+  // })
+  public async getTwitterUserPost(@Param('username') username: string) {
+    return {
+      code: 200,
+      message: "Get user's posts successful",
+      data: await this.userService.getTwitterUserPost(username)
     };
   }
 

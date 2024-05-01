@@ -13,10 +13,12 @@ import {
   IsStrongPassword,
   IsIn
 } from 'class-validator';
+import { UserType } from '../../entities/user.entity';
 export class UpdateUserDto {
   @ApiProperty({})
+  @Type(() => String)
   @IsOptional()
-  type?: string;
+  type?: UserType;
 
   @ApiProperty({})
   @IsOptional()
