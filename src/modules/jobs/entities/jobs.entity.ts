@@ -57,6 +57,9 @@ export class Jobs extends AbstractEntity {
   @Column({ nullable: true, default: null })
   subscriber: string;
 
+  @Column({ nullable: true, default: null })
+  kolWallet: string;
+
   @BeforeInsert()
   async beforeInsert() {
     if (!this.tags) this.tags = [];

@@ -69,6 +69,10 @@ export class CreateJobDto {
   @IsArray()
   currency?: string[];
 
+  @ApiProperty({})
+  @IsString()
+  kolWallet: string;
+
   //   @ApiProperty({})
   //   @IsString()
   //   creator: string;
