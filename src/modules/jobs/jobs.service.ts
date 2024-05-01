@@ -47,7 +47,8 @@ export class JobsService {
       paymentMethod: request.paymentMethod,
       price: request.price,
       platform: request.platform,
-      currency: request.currency
+      currency: request.currency,
+      kolWallet: request.kolWallet
     };
     console.log('jobCreated:', jobCreated);
     const saveJob = this.jobsRep.create(jobCreated);
