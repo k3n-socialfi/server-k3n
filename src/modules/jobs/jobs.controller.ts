@@ -42,7 +42,7 @@ export class JobsController {
     };
   }
 
-  @Get(':jobId')
+  @Get(':jobId/detail')
   //   @ApiResponse({
   //     description: 'Get user by id response',
   //     type: SwaggerUserResponseDto
