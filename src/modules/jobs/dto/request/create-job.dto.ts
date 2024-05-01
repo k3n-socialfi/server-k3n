@@ -71,8 +71,7 @@ export class CreateJobDto {
 
   @ApiProperty({})
   @IsString()
-  @IsOptional()
-  kolWallet?: string;
+  kolWallet: string;
 
   //   @ApiProperty({})
   //   @IsString()
