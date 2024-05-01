@@ -15,7 +15,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { CreateJobDto } from './dto/request/create-job.dto';
 import { generateId } from 'src/utils/helper';
-import { Jobs } from './entities/jobs.entity';
+import { Jobs, JobState } from './entities/jobs.entity';
 import { RequestJobsQuery } from './dto/request/query-jobs.dto';
 import { Cache } from 'cache-manager';
 import { User } from '../users/entities/user.entity';
@@ -69,6 +69,10 @@ export class JobsService {
 
     if (query.creator) {
       whereConditions.role = query.creator;
+    }
+
+    if (query.jobState) {
+      whereConditions.jobState = query.jobState;
     }
 
     // if (query.tags) {
@@ -167,6 +171,7 @@ export class JobsService {
       throw new UnauthorizedException("Must be job's creator");
     }
     job.subscriber = subscriber;
+    job.jobState = JobState.Progress;
     await this.jobsRep.update(
       {
         jobId: job.jobId
@@ -178,6 +183,28 @@ export class JobsService {
       creator,
       jobId,
       subscriber
+    };
+  }
+
+  async completeJob(jobId: string) {
+    let job = await this.jobsRep.findOne({
+      where: {
+        jobId
+      }
+    });
+    if (!job) {
+      throw new NotFoundException(`Job with ID ${jobId} not found.`);
+    }
+    job.jobState = JobState.Completed;
+    await this.jobsRep.update(
+      {
+        jobId: job.jobId
+      },
+      job
+    );
+    const { _id, ...dataJob } = job;
+    return {
+      dataJob
     };
   }
 

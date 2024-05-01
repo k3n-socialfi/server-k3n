@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards, ValidationPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { JobsService } from './jobs.service';
 import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
@@ -139,6 +139,15 @@ export class JobsController {
       code: 201,
       message: 'Get all offer by username successful',
       data: await this.jobsService.getAllOfferByUsername(username)
+    };
+  }
+
+  @Put('/:jobId/complete')
+  public async completeJob(@Param('jobId') jobId: string) {
+    return {
+      code: 201,
+      message: 'Complete job successful',
+      data: await this.jobsService.completeJob(jobId)
     };
   }
 

@@ -1,6 +1,11 @@
 import { AbstractEntity } from '@common/entities/abstract-entity';
 import { BeforeInsert, Column, Entity } from 'typeorm';
 
+export enum JobState {
+  Pending = 'Pending',
+  Progress = 'Progress',
+  Completed = 'Completed'
+}
 @Entity('jobs')
 export class Jobs extends AbstractEntity {
   @Column({ unique: true })
@@ -60,6 +65,9 @@ export class Jobs extends AbstractEntity {
   @Column({ nullable: true, default: null })
   kolWallet: string;
 
+  @Column({ nullable: false })
+  jobState: JobState;
+
   @BeforeInsert()
   async beforeInsert() {
     if (!this.tags) this.tags = [];
@@ -76,5 +84,7 @@ export class Jobs extends AbstractEntity {
 
     if (!this.offers) this.offers = [];
     if (!this.subscriber) this.subscriber = null;
+
+    if (!this.jobState) this.jobState = JobState.Pending;
   }
 }
