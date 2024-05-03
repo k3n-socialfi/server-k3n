@@ -106,7 +106,9 @@ export class AuthService {
         username,
         password: hash
       });
+      console.log('newUser:', newUser);
       const tokens = await this.getTokens(newUser.userId, newUser.username, newUser.role);
+      console.log('tokens:', tokens);
       return {
         isNew: true,
         user: newUser,

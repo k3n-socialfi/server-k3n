@@ -20,6 +20,7 @@ export class OauthController {
   @UseGuards(TwitterOauthGuard)
   async twitterAuthRedirect(@Req() req: Request, @Res() res: Response) {
     const userObject = JSON.parse(JSON.stringify(req.user));
+    // console.log('userObject:', userObject);
     const rs = await this.authService.loginWithTwitter({
       id: userObject?.id,
       username: userObject?.username

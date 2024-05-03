@@ -629,12 +629,12 @@ export class UserService {
     const randomReview = Math.random() * 5;
     const review = Number(randomReview.toFixed(1));
     ///
-
     const { id, username, password } = request;
     const twUser = await this.twitterService.findTwitterUsersById(id);
     const social = new SocialNetwork();
     social.social = 'twitter';
     social.username = username;
+
     const userCreated = {
       userId: id,
       username,
@@ -651,8 +651,7 @@ export class UserService {
       review: review
     };
     const saveUser = this.userRep.create(userCreated);
-
-    const image = twUser?.profile_pic_url.avatar.replace('normal', '400x400');
+    const image = twUser?.profile_pic_url.replace('normal', '400x400');
     const twitterUserCreated = {
       userId: id,
       username,
@@ -686,6 +685,7 @@ export class UserService {
       numberOfTweets: saveTwitterUser.numberOfTweets,
       creationDate: saveTwitterUser.creationDate
     };
+
     await this.twitterService.twitterPointsCalculationByUsername(username);
     return saveUser;
   }
