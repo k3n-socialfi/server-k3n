@@ -686,6 +686,7 @@ export class UserService {
       numberOfTweets: saveTwitterUser.numberOfTweets,
       creationDate: saveTwitterUser.creationDate
     };
+    await this.twitterService.twitterPointsCalculationByUsername(username);
     return saveUser;
   }
 

@@ -9,7 +9,7 @@ import {
   UnauthorizedException
 } from '@nestjs/common';
 import { TwitterService } from '../twitter/twitter.service';
-import { MongoRepository, Repository } from 'typeorm';
+import { MongoRepository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -18,7 +18,6 @@ import { generateId } from 'src/utils/helper';
 import { Jobs, JobState } from './entities/jobs.entity';
 import { RequestJobsQuery } from './dto/request/query-jobs.dto';
 import { Cache } from 'cache-manager';
-import { User } from '../users/entities/user.entity';
 import { UserService } from '../users/user.service';
 
 @Injectable()

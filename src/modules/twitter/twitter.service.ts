@@ -44,7 +44,8 @@ export class TwitterService {
       console.log('Start run twitter job !');
 
       // Get points
-      // await this.twitterPointsCalculation();
+      await this.twitterPointsCalculation();
+      // await this.twitterPointsCalculationByUsername('DustinH_13');
 
       // Create User's Portfolio
       await this.createUserTwitterPortfolio();
@@ -81,6 +82,31 @@ export class TwitterService {
     } catch (err) {
       console.log('err:', err);
     }
+  }
+
+  async twitterPointsCalculationByUsername(username: string) {
+    const twitterUser = await this.twitterUsersRep.findOne({
+      where: {
+        username
+      }
+    });
+    const twPoints = await this.getUserTweetPoints({ username });
+    let twitterPoints =
+      twPoints.allTweets.totalFavoriteCount +
+      twPoints.allTweets.totalRetweetCount * 2 +
+      twPoints.allTweets.totalReplyCount * 2 +
+      twPoints.allTweets.totalQuoteCount * 3 +
+      twPoints.allTweets.totalViews +
+      twPoints.latestTweet.favoriteCount +
+      twPoints.latestTweet.retweetCount * 2 +
+      twPoints.latestTweet.replyCount * 2 +
+      twPoints.latestTweet.quoteCount * 3 +
+      twPoints.latestTweet.views;
+    // const royaltyPoints = user.royaltyPoints;
+
+    twitterUser.twitterPoints = twitterPoints;
+
+    await this.twitterUsersRep.save(twitterUser);
   }
 
   async twitterPointsCalculation() {
@@ -325,7 +351,7 @@ export class TwitterService {
   async getUserTweetPoints({ username, time }: { username: string; time?: string }) {
     const nowMs = Date.now();
     let tweets = await this.getUserTweets({ username, limit: 20, includePinned: true, includeReplies: false });
-    if (!tweets) tweets = [];
+    if (!tweets || !tweets?.results) tweets.results = [];
     let totalFavoriteCount = 0;
     let totalRetweetCount = 0;
     let totalReplyCount = 0;
