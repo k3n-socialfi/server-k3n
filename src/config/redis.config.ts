@@ -15,10 +15,7 @@ export const RedisOptions: CacheModuleAsyncOptions = {
   useFactory: async () => {
     const store = await redisStore({
       password: process.env.REDIS_PASSWORD,
-      socket: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT) || 6379
-      }
+      url: process.env.REDIS_URL
     });
     return {
       store: () => store

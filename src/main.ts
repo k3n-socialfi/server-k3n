@@ -14,8 +14,8 @@ async function bootstrap() {
   // Setup Swagger
   const apiVersion = process.env.API_VERSION || 'v1';
   const options = new DocumentBuilder()
-    .setTitle('SocialFi Project API document')
-    .setDescription('Document for SocialFi API')
+    .setTitle('K3N Project API document')
+    .setDescription('Document for K3N API')
     .setVersion(apiVersion)
     .addBearerAuth()
     .build();
