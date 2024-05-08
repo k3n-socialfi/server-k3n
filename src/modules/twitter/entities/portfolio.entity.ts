@@ -19,8 +19,11 @@ export class TwitterPortfolio extends AbstractEntity {
   @Column()
   image: string;
 
-  @Column({ type: 'decimal' })
-  shillPrice: number;
+  // @Column({ type: 'decimal' })
+  // shillPrice: number;
+
+  @Column()
+  chain: string;
 
   @Column({ type: 'number' })
   firstTweetDate: number;

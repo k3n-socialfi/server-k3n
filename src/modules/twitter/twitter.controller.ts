@@ -90,7 +90,7 @@ export class TwitterController {
     return {
       code: 200,
       message: "Get user's portfolio successful",
-      data: await this.twitterService.getPortfolioByUsername(username)
+      data: await this.twitterService.getUserTwitterPortfolio(username)
     };
   }
 

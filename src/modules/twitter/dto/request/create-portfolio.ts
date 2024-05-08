@@ -33,8 +33,8 @@ export class CreateTwitterPortfolioDto {
 
   @ApiProperty({})
   @IsNotEmpty()
-  @IsNumber()
-  shillPrice: number;
+  @IsString()
+  chain: string;
 
   @ApiProperty({})
   @IsNotEmpty()

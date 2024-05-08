@@ -543,7 +543,7 @@ export class TwitterService {
         contractAddress: req.contractAddress,
         symbol: req.symbol,
         image: req.image,
-        shillPrice: req.shillPrice,
+        chain: req.chain,
         firstTweetDate: req.firstTweetDate,
         firstTweet: req.firstTweet
       };
@@ -652,7 +652,7 @@ export class TwitterService {
             contractAddress: info.baseToken.address,
             symbol: info.baseToken.symbol,
             // image:
-            shillPrice: 1,
+            chain: info.chainId,
             firstTweetDate: creationDate,
             firstTweet: `https://twitter.com/${username}/status/${tweet.tweet_id}`
           });
@@ -690,23 +690,73 @@ export class TwitterService {
     }
   }
 
-  async getTokenPriceHistory(id: string, date: string) {
+  async getTokenPriceHistory(address: string, from: number, chain: string) {
+    try {
+      const millisecondsNow = Date.now();
+      const to = Math.floor(millisecondsNow / 1000);
+      const call = this.httpService
+        .get(
+          `https://public-api.birdeye.so/defi/history_price?address=${address}&address_type=token&type=1D&time_from=${from - 100}&time_to=${to}`,
+          {
+            headers: {
+              accept: 'application/json',
+              'x-chain': chain,
+              'X-API-KEY': '87adffcbfb504663a6db5e5a8aceab24'
+            }
+          }
+        )
+        .toPromise();
+
+      const res = await call;
+      // console.log('res:', res.data?.data?.items?.[0]);
+      if (!res || res.status != 200) return [];
+
+      return res.data?.data?.items;
+    } catch (err) {
+      // console.log('err:', err);
+      // this.logger.error(err?.response?.data?.errors, err.stack, TwitterService.name);
+      // throw new InternalServerErrorException(err?.response?.data?.errors);
+      return [];
+    }
+  }
+
+  getTokenPriceATH(listPrice: any) {
+    const ath = listPrice.reduce((max, item) => {
+      return item.value > max ? item.value : max;
+    }, listPrice?.[0]?.value || 0);
+    return ath;
+  }
+
+  async getCurrentTokenPrice(address: string, chain: string) {
     try {
       const call = this.httpService
-        .get(`https://api.coingecko.com/api/v3/coins/${id}/history?date=${date}`)
+        .get(`https://public-api.birdeye.so/defi/price?address=${address}`, {
+          headers: {
+            accept: 'application/json',
+            'x-chain': chain,
+            'X-API-KEY': '87adffcbfb504663a6db5e5a8aceab24'
+          }
+        })
         .toPromise();
 
       const res = await call;
       if (!res || res.status != 200) return undefined;
 
       return {
-        id: res.data?.id,
-        price: res.data?.market_data?.current_price?.usd
+        price: res.data?.data?.value
       };
     } catch (err) {
+      console.log('err:', err);
       this.logger.error(err?.response?.data?.errors, err.stack, TwitterService.name);
-      throw new InternalServerErrorException(err?.response?.data?.errors);
+      // throw new InternalServerErrorException(err?.response?.data?.errors);
+      return undefined;
     }
+  }
+
+  async clearTokenPortfolio(userId: string) {
+    await this.twitterPortfolioRep.delete({
+      userId
+    });
   }
 
   async createUserTwitterPortfolio() {
@@ -715,7 +765,7 @@ export class TwitterService {
       const tweets = await this.getRecentUserTweets({ username: twitterUsers[i].username, includePinned: true });
 
       const { listToken, tweetInfo } = this.getTokenFromTweets(tweets);
-
+      await this.clearTokenPortfolio(twitterUsers[i].userId);
       await this.addTokenToPortfolio({ username: twitterUsers[i].username, listToken, tweetInfo });
     }
 
@@ -732,8 +782,20 @@ export class TwitterService {
 
     const portResponse = await Promise.all(
       userPortfolio.map(async (port) => {
+        const dateObject = new Date(port.firstTweetDate);
+        const timestamp = dateObject.getTime();
+        const shillPrice = await this.getTokenPriceHistory(port.contractAddress, timestamp / 1000, port.chain);
+        const ath = this.getTokenPriceATH(shillPrice);
+        const currentPrice = await this.getCurrentTokenPrice(port.contractAddress, port.chain);
         const { _id, ...portData } = port;
-        return portData;
+        const pnl = (100 * (currentPrice?.price - shillPrice?.[0]?.value)) / shillPrice?.[0]?.value;
+        return {
+          shillPrice: shillPrice?.[0]?.value ? shillPrice?.[0]?.value : null,
+          currentPrice: currentPrice?.price ? currentPrice?.price : null,
+          ath: ath == 0 ? null : ath,
+          pnl,
+          ...portData
+        };
       })
     );
 
