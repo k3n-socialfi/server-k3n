@@ -651,7 +651,7 @@ export class TwitterService {
             tokenName: info.baseToken.name,
             contractAddress: info.baseToken.address,
             symbol: info.baseToken.symbol,
-            // image:
+            image: info?.info?.imageUrl,
             chain: info.chainId,
             firstTweetDate: creationDate,
             firstTweet: `https://twitter.com/${username}/status/${tweet.tweet_id}`
