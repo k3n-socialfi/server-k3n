@@ -14,6 +14,7 @@ import {
   IsIn
 } from 'class-validator';
 import { UserType } from '../../entities/user.entity';
+import { Role } from '@common/constants/enum';
 export class UpdateUserDto {
   @ApiProperty({})
   @Type(() => String)
@@ -55,6 +56,33 @@ export class UpdateUserDto {
   @ApiProperty({})
   @IsOptional()
   gender?: string;
+
+  @ApiProperty({})
+  @IsOptional()
+  location?: string;
+}
+
+export class UpdateUserProfileSigUpDto {
+  @ApiProperty({})
+  @IsOptional()
+  isProjectAccount?: boolean;
+
+  @ApiProperty({})
+  @IsOptional()
+  projectChain?: string;
+
+  @ApiProperty({})
+  @IsOptional()
+  projectName?: string;
+
+  @ApiProperty({})
+  @IsOptional()
+  platform?: string;
+
+  @ApiProperty({})
+  @Type(() => String)
+  @IsOptional()
+  type?: Role;
 
   @ApiProperty({})
   @IsOptional()

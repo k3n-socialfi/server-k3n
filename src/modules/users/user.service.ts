@@ -26,7 +26,7 @@ import { generateId } from 'src/utils/helper';
 import { TwitterUsers } from './entities/twitter-user.entity';
 import { CreateUserExperienceDto, UpdateUserExperienceDto } from './dto/request/experience.dto';
 import { UserExperiences } from './entities/experience.entity';
-import { UpdateUserDto } from './dto/request/update-user.dto';
+import { UpdateUserDto, UpdateUserProfileSigUpDto } from './dto/request/update-user.dto';
 import { Timeout } from '@nestjs/schedule';
 import { listUser } from './dto/request/import-user.dto';
 
@@ -724,6 +724,25 @@ export class UserService {
     if (dob) users.dob = dob;
     if (gender) users.gender = gender;
     if (location) users.location = location;
+    const { twitterInfo, experience, ...saveData } = users;
+    await this.userRep.update({ userId }, saveData);
+    return users;
+  }
+
+  async updateProfileSigUp(userId: string, request: UpdateUserProfileSigUpDto): Promise<UserResponseDto> {
+    const { isProjectAccount, projectChain, projectName, platform, type, location } = request;
+    let users = await this.findByUserId(userId);
+
+    console.log('users.isUpdated:', users.isUpdated);
+    if (users?.isUpdated) throw new BadRequestException('You already update profile after sigup');
+    if (isProjectAccount) users.isProjectAccount = isProjectAccount;
+    if (projectChain) users.projectChain = projectChain;
+    if (projectName) users.projectName = projectName;
+    if (platform) users.platform = platform;
+    if (type) users.type = type;
+    if (location) users.location = location;
+
+    users.isUpdated = true;
     const { twitterInfo, experience, ...saveData } = users;
     await this.userRep.update({ userId }, saveData);
     return users;

@@ -183,6 +183,21 @@ export abstract class UserResponseDto {
 
   @ApiProperty()
   lastLogin?: string;
+
+  @ApiProperty()
+  isProjectAccount: boolean;
+
+  @ApiProperty()
+  isUpdated: boolean;
+
+  @ApiProperty()
+  projectChain: string;
+
+  @ApiProperty()
+  projectName: string;
+
+  @ApiProperty()
+  platform: string;
 }
 
 export class InternalUserResponseDto extends UserResponseDto {

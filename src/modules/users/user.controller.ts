@@ -42,7 +42,7 @@ import { UpdateUserByAdminDto } from './dto/request/admin-update-user.dto';
 import { ConnectTwitterDto } from './dto/request/connect-twitter.dto';
 import { LoginSolanaDto } from '../auth/dto/login-wallet.dto';
 import { CreateUserExperienceDto, UpdateUserExperienceDto } from './dto/request/experience.dto';
-import { UpdateUserDto } from './dto/request/update-user.dto';
+import { UpdateUserDto, UpdateUserProfileSigUpDto } from './dto/request/update-user.dto';
 
 @Controller('users')
 @ApiTags('User')
@@ -232,6 +232,22 @@ export class UserController {
       code: 201,
       message: 'Update user successful',
       data: await this.userService.updateProfileByUser(userObject.sub, request)
+    };
+  }
+
+  @Put('sigup/update')
+  @ApiResponse({
+    description: 'Update user sigup',
+    type: SwaggerUpdateUserByAdminResponseDto
+  })
+  @UseGuards(AccessTokenGuard)
+  public async updateProfileSigUp(@Req() req: Request, @Body() request: UpdateUserProfileSigUpDto) {
+    if (!request) throw new BadRequestException('Body request cannot be empty');
+    const userObject = JSON.parse(JSON.stringify(req.user));
+    return {
+      code: 201,
+      message: 'Update user sigup successful',
+      data: await this.userService.updateProfileSigUp(userObject.sub, request)
     };
   }
 

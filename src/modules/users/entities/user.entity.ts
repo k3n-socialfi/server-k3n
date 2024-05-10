@@ -71,6 +71,9 @@ export class User extends AbstractEntity {
   @Column({})
   role: string;
 
+  @Column({})
+  isProjectAccount: boolean;
+
   @Column({ nullable: true, default: null })
   type: string;
 
@@ -152,6 +155,19 @@ export class User extends AbstractEntity {
   @Column({ nullable: true, default: null })
   twitterInfo: any;
 
+  @Column({ nullable: false })
+  isUpdated: boolean;
+
+  // for project
+  @Column({ nullable: true, default: null })
+  projectChain: string;
+
+  @Column({ nullable: true, default: null })
+  projectName: string;
+
+  @Column({ nullable: true, default: null })
+  platform: string;
+
   @BeforeInsert()
   async beforeInsert() {
     if (!this.type) this.type = null;
@@ -174,8 +190,13 @@ export class User extends AbstractEntity {
     // if (!this.verificationStatus) this.verificationStatus = null;
     if (!this.referralCode) this.referralCode = null;
     if (!this.lastLogin) this.lastLogin = null;
+    if (!this.isUpdated) this.isUpdated = false;
     // this.totalPoints = this.twitterPoints + this.royaltyPoints;
     // this.userId = this._id.toString();
+
+    if (!this.projectChain) this.projectChain = null;
+    if (!this.projectName) this.projectName = null;
+    if (!this.platform) this.platform = null;
   }
 
   // @BeforeUpdate()
