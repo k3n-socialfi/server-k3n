@@ -54,9 +54,9 @@ export class UserService {
         console.log('listUser[i]:', listUser[i]);
         const twUser = await this.twitterService.findTwitterUsersByUsername(listUser[i]);
 
+        if (!twUser || !twUser?.user_id || !twUser.username) continue;
         const checkExistUser = await this.findByUserId(twUser.user_id);
         if (checkExistUser) continue;
-        if (!twUser || !twUser?.user_id || !twUser.username) continue;
         // console.log('twUser:', twUser);
         const userTypes = Object.values(UserType);
         const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
