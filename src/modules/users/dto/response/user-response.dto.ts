@@ -191,13 +191,13 @@ export abstract class UserResponseDto {
   isUpdated: boolean;
 
   @ApiProperty()
-  projectChain: string;
+  projectChain?: string;
 
   @ApiProperty()
-  projectName: string;
+  projectName?: string;
 
   @ApiProperty()
-  platform: string;
+  platform?: string;
 }
 
 export class InternalUserResponseDto extends UserResponseDto {

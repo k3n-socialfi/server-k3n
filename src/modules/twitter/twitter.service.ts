@@ -37,7 +37,7 @@ export class TwitterService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
 
-  @Cron(CronExpression.EVERY_12_HOURS)
+  // @Cron(CronExpression.EVERY_12_HOURS)
   // @Timeout(0)
   async TwitterJob() {
     try {
@@ -48,7 +48,7 @@ export class TwitterService {
       // await this.twitterPointsCalculationByUsername('DustinH_13');
 
       // Create User's Portfolio
-      await this.createUserTwitterPortfolio();
+      // await this.createUserTwitterPortfolio();
 
       // const batchSize = 1;
       // const batches = [];
@@ -104,7 +104,13 @@ export class TwitterService {
       twPoints.latestTweet.views;
     // const royaltyPoints = user.royaltyPoints;
 
-    twitterUser.twitterPoints = twitterPoints;
+    console.log('twitterPoints:', twitterPoints);
+    let savePoint = Math.floor((100 * twitterPoints) / 50000000);
+    if (savePoint > 100) savePoint = 100;
+    if (savePoint < 1 && twitterPoints > 0) savePoint = 1;
+    console.log('savePoint:', savePoint);
+
+    twitterUser.twitterPoints = savePoint;
 
     await this.twitterUsersRep.save(twitterUser);
   }
@@ -126,7 +132,13 @@ export class TwitterService {
         twPoints.latestTweet.views;
       // const royaltyPoints = user.royaltyPoints;
 
-      twitterUsers[i].twitterPoints = twitterPoints;
+      console.log('twitterPoints:', twitterPoints);
+      let savePoint = Math.floor((100 * twitterPoints) / 50000000);
+      if (savePoint > 100) savePoint = 100;
+      if (savePoint < 1 && twitterPoints > 0) savePoint = 1;
+      console.log('savePoint:', savePoint);
+
+      twitterUsers[i].twitterPoints = savePoint;
 
       await this.twitterUsersRep.save(twitterUsers[i]);
     }

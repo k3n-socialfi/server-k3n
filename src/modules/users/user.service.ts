@@ -45,6 +45,7 @@ export class UserService {
 
   // @Timeout(0)
   async initUser() {
+    // this.findAll();
     console.log('Start run user init job !');
     // const listUser = ['Ozi_Eth7'];
     try {
@@ -56,19 +57,18 @@ export class UserService {
         // console.log('twUser:', twUser);
         const userTypes = Object.values(UserType);
         const randomUserType = userTypes[Math.floor(Math.random() * userTypes.length)];
-
         const jobTile = Object.values(JobTittle);
         const randomJob = Math.floor(Math.random() * jobTile.length);
-
         const tags = Object.values(UserTags);
         const randomNumber = Math.floor(Math.random() * tags.length);
         const randomTags = [tags[randomNumber], tags[randomNumber + 1], tags[randomNumber + 2]];
-
         const randomReview = Math.random() + 4;
         // Fix to one decimal place
         const review = Number(randomReview.toFixed(1));
-
         // const price = Number((Math.random() * 5000).toFixed(0));
+
+        const platforms = ['X', 'Facebook', 'TikTok', 'Telegram'];
+        const randomPlatforms = Math.floor(Math.random() * platforms.length);
 
         const social = new SocialNetwork();
         social.social = 'twitter';
@@ -86,12 +86,16 @@ export class UserService {
           type: randomUserType,
           jobTittle: jobTile[randomJob],
           tags: randomTags,
-          review: review
+          review: review,
+          isProjectAccount: false,
+          platform: platforms[randomPlatforms],
+          location: 'England',
+
+          isUpdated: true
           // price: price
         };
         const saveUser = this.userRep.create(userCreated);
         console.log('saveUser:', saveUser);
-
         const twitterUserCreated = {
           userId: twUser.user_id,
           username: twUser.username,
@@ -107,7 +111,6 @@ export class UserService {
           creationDate: twUser?.creation_date
         };
         const saveTwitterUser = this.twitterUsersRep.create(twitterUserCreated);
-
         await Promise.all([this.userRep.save(saveUser), this.twitterUsersRep.save(saveTwitterUser)]);
       }
       console.log('End run user init job !');
@@ -269,7 +272,13 @@ export class UserService {
   }
 
   async findAll() {
-    const user = this.userRep.find();
+    const user = await this.userRep.find();
+    // const username = await Promise.all([
+    //   user.map((u) => {
+    //     return u.username;
+    //   })
+    // ]);
+    // console.log('username:', username);
     return user;
   }
 
@@ -730,17 +739,19 @@ export class UserService {
   }
 
   async updateProfileSigUp(userId: string, request: UpdateUserProfileSigUpDto): Promise<UserResponseDto> {
-    const { isProjectAccount, projectChain, projectName, platform, type, location } = request;
+    const { isProjectAccount, projectChain, projectName, platform, type, location, role, language, tags } = request;
     let users = await this.findByUserId(userId);
 
     console.log('users.isUpdated:', users.isUpdated);
-    if (users?.isUpdated) throw new BadRequestException('You already update profile after sigup');
+    if (users?.isUpdated) throw new BadRequestException('You already update profile after signup');
     if (isProjectAccount) users.isProjectAccount = isProjectAccount;
     if (projectChain) users.projectChain = projectChain;
     if (projectName) users.projectName = projectName;
     if (platform) users.platform = platform;
     if (type) users.type = type;
     if (location) users.location = location;
+    if (role) users.role = role;
+    if (tags) users.tags = tags;
 
     users.isUpdated = true;
     const { twitterInfo, experience, ...saveData } = users;

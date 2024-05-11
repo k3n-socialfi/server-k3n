@@ -16,7 +16,11 @@ export enum UserType {
   Caller = 'Caller',
   Influencer = 'Influencer',
   Researcher = 'Researcher',
-  Threador = 'Threador'
+  Threador = 'Threador',
+  Celebrities = 'Celebrities',
+  Experts = 'Experts',
+  KOL = 'KOL',
+  Other = 'Other'
 }
 
 export enum UserTags {
@@ -160,13 +164,16 @@ export class User extends AbstractEntity {
 
   // for project
   @Column({ nullable: true, default: null })
-  projectChain: string;
+  projectChain?: string;
 
   @Column({ nullable: true, default: null })
-  projectName: string;
+  projectName?: string;
 
   @Column({ nullable: true, default: null })
-  platform: string;
+  tokenName?: string;
+
+  @Column({ nullable: true, default: null })
+  platform?: string;
 
   @BeforeInsert()
   async beforeInsert() {

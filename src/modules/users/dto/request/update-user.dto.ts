@@ -13,7 +13,7 @@ import {
   IsStrongPassword,
   IsIn
 } from 'class-validator';
-import { UserType } from '../../entities/user.entity';
+import { UserTags, UserType } from '../../entities/user.entity';
 import { Role } from '@common/constants/enum';
 export class UpdateUserDto {
   @ApiProperty({})
@@ -77,14 +77,32 @@ export class UpdateUserProfileSigUpDto {
 
   @ApiProperty({})
   @IsOptional()
+  tokenName?: string;
+
+  @ApiProperty({})
+  @IsOptional()
   platform?: string;
 
   @ApiProperty({})
   @Type(() => String)
   @IsOptional()
-  type?: Role;
+  role?: Role;
+
+  @ApiProperty({})
+  @Type(() => String)
+  @IsOptional()
+  type?: UserType;
 
   @ApiProperty({})
   @IsOptional()
   location?: string;
+
+  @ApiProperty({})
+  @IsOptional()
+  language?: string;
+
+  @ApiProperty({})
+  @IsOptional()
+  @IsArray()
+  tags?: UserTags[];
 }
