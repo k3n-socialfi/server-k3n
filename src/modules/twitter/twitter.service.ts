@@ -38,7 +38,7 @@ export class TwitterService {
   ) {}
 
   // @Cron(CronExpression.EVERY_12_HOURS)
-  // @Timeout(0)
+  @Timeout(0)
   async TwitterJob() {
     try {
       console.log('Start run twitter job !');
@@ -48,7 +48,7 @@ export class TwitterService {
       // await this.twitterPointsCalculationByUsername('DustinH_13');
 
       // Create User's Portfolio
-      // await this.createUserTwitterPortfolio();
+      await this.createUserTwitterPortfolio();
 
       // const batchSize = 1;
       // const batches = [];

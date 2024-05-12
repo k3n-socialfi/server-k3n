@@ -43,7 +43,7 @@ export class UserService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
 
-  @Timeout(0)
+  // @Timeout(0)
   async initUser() {
     // this.findAll();
     console.log('Start run user init job !');
