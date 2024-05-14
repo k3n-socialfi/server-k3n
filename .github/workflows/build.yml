@@ -72,6 +72,4 @@ jobs:
       run: npm install -g pm2@latest
 
     - name: Run server
-      run: |
-        source /home/ubuntu/actions-runner/_env/env_file
-        pm2 restart k3n-server
+      run: pm2 restart k3n-server --update-env
