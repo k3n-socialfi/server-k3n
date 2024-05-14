@@ -27,6 +27,9 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+    - name: Install Nest CLI
+      run: npm install -g @nestjs/cli
+
     - name: Run tests
       run: npm test
 
