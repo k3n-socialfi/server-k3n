@@ -73,5 +73,5 @@ jobs:
 
     - name: Run server
       run: |
-        source ~/actions-runner/_env/.env
+        source /home/ubuntu/actions-runner/_env/env_file
         pm2 restart k3n-server
