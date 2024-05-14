@@ -10,6 +10,11 @@ jobs:
   build:
     runs-on: self-hosted
 
+    strategy:
+      matrix:
+        node-version: [22.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
     env:
       NODE_ENV: ${{ secrets.NODE_ENV }}
       CONSOLE_LOG_LEVEL: ${{ secrets.CONSOLE_LOG_LEVEL }}
@@ -38,10 +43,6 @@ jobs:
       X_RAPIDAPI_KEY: ${{ secrets.X_RAPIDAPI_KEY }}
       X_RAPIDAPI_HOST: ${{ secrets.X_RAPIDAPI_HOST }}
 
-    strategy:
-      matrix:
-        node-version: [22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
     - uses: actions/checkout@v4
