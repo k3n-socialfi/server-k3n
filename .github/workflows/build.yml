@@ -13,7 +13,6 @@ jobs:
     strategy:
       matrix:
         node-version: [22.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     env:
       NODE_ENV: ${{ secrets.NODE_ENV }}
@@ -43,7 +42,6 @@ jobs:
       X_RAPIDAPI_KEY: ${{ secrets.X_RAPIDAPI_KEY }}
       X_RAPIDAPI_HOST: ${{ secrets.X_RAPIDAPI_HOST }}
 
-
     steps:
     - uses: actions/checkout@v4
 
@@ -61,6 +59,9 @@ jobs:
           ${{ runner.os }}-node-${{ matrix.node-version }}-
           ${{ runner.os }}-node-
 
+    - name: Debug environment variables
+      run: echo "Environment $JWT_ACCESS_SECRET"
+
     - name: Install dependencies
       run: npm ci --legacy-peer-deps
 
@@ -70,8 +71,8 @@ jobs:
     - name: Build project
       run: npm run build
 
-    - name: install pm2
+    - name: Install pm2
       run: npm install -g pm2@latest
 
-    - name: run server
+    - name: Run server
       run: pm2 restart k3n-server
