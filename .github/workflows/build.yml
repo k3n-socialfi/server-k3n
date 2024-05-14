@@ -11,6 +11,7 @@ on:
 
 jobs:
   build:
+    name: Build
     runs-on: self-hosted
 
     steps:
@@ -28,9 +29,9 @@ jobs:
     - name: Build
       run: yarn build
 
-    - name: Login
-      run: npx warp login --api-key=${{ secrets.SD_API_KEY }}
+    # - name: Login
+    #   run: npx warp login --api-key=${{ secrets.SD_API_KEY }}
 
-    - name: Deploy
-      run: npx warp deploy --project ${ORG_PROJECT} --env ${DEPLOY_ENV}
+    # - name: Deploy
+    #   run: npx warp deploy --project ${ORG_PROJECT} --env ${DEPLOY_ENV}
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
