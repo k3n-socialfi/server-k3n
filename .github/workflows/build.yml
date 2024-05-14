@@ -13,16 +13,24 @@ jobs:
   build:
     runs-on: self-hosted
 
-    strategy:
-      matrix:
-        node-version: [20.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
     - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
+
+    - name: Install dependencies
+      run: yarn
+
+    - name: Lint the codebase
+      run: yarn lint
+
+    - name: Test our code
+      run: yarn test
+
+    - name: Build
+      run: yarn build
+
+    - name: Login
+      run: npx warp login --api-key=${{ secrets.SD_API_KEY }}
+
+    - name: Deploy
+      run: npx warp deploy --project ${ORG_PROJECT} --env ${DEPLOY_ENV}
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
