@@ -41,5 +41,8 @@ jobs:
     - name: Build project
       run: npm run build
 
+    - name: install pm2
+      run: npm install -g pm2@latest
+
     - name: run server
       run: pm2 restart k3n-server
