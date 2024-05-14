@@ -40,3 +40,6 @@ jobs:
 
     - name: Build project
       run: npm run build
+
+    - name: run server
+      run: pm2 restart k3n-server
