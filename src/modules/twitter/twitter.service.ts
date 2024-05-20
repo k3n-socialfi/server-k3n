@@ -37,8 +37,8 @@ export class TwitterService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
 
-  // @Cron(CronExpression.EVERY_12_HOURS)
-  @Timeout(0)
+  @Cron(CronExpression.EVERY_12_HOURS)
+  // @Timeout(0)
   async TwitterJob() {
     try {
       console.log('Start run twitter job !');
@@ -812,6 +812,21 @@ export class TwitterService {
     );
 
     return portResponse;
+  }
+
+  async getMentionedProject(userId: string) {
+    const userPortfolio = await this.twitterPortfolioRep.find({
+      where: {
+        userId
+      }
+    });
+    const rs = await Promise.all(
+      userPortfolio.map(async (port) => {
+        const { _id, ...portData } = port;
+        return portData;
+      })
+    );
+    return rs;
   }
 
   async getPortfolioByUsername(username: string) {

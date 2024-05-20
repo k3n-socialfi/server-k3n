@@ -20,6 +20,9 @@ export enum UserType {
   Celebrities = 'Celebrities',
   Experts = 'Experts',
   KOL = 'KOL',
+  Founder = 'Founder & Builder',
+  Media = 'New & Media',
+  Agencies = 'Agencies',
   Other = 'Other'
 }
 

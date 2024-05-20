@@ -77,7 +77,7 @@ export class JobsService {
     // if (query.tags) {
     //   whereConditions.tags = query.tags;
     // }
-    const [jobs, totalCount] = await Promise.all([
+    let [jobs, totalCount] = await Promise.all([
       this.jobsRep.find({
         where: whereConditions,
         skip: skip > 0 ? skip : 0,
@@ -89,10 +89,13 @@ export class JobsService {
 
     const totalPages = Math.ceil(totalCount / query.limit);
 
-    const jobsResponse = jobs.map((job) => {
-      const { _id, ...jobData } = job;
-      return jobData;
-    });
+    const jobsResponse = await Promise.all(
+      jobs.map(async (job) => {
+        const creatorInfo = await this.userService.findByUserId(job.creator);
+        let { _id, ...jobData } = job;
+        return { creatorInfo: creatorInfo, ...jobData };
+      })
+    );
 
     return {
       jobs: jobsResponse,
@@ -130,8 +133,9 @@ export class JobsService {
     if (!job) {
       throw new NotFoundException(`Job with ID ${jobId} not found.`);
     }
+    const creatorInfo = await this.userService.findByUserId(job.creator);
     const { _id, ...jobData } = job;
-    return jobData;
+    return { creatorInfo: creatorInfo, ...jobData };
   }
 
   async offerJobs(userId: string, jobId: string) {

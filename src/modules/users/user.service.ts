@@ -339,7 +339,7 @@ export class UserService {
     };
   }
 
-  async findTopKolsRanking(query: RequestKolsRanking): Promise<UserListResponseDto> {
+  async findTopKolsRanking(query: RequestKolsRanking) {
     console.log('query:', query);
     const skip = query.page * query.limit;
 
@@ -394,9 +394,19 @@ export class UserService {
 
     const users = await this.userRep.aggregate(aggregationPipeline).toArray();
 
+    const userWithPort = await Promise.all(
+      users.map(async (user) => {
+        const port = await this.twitterService.getMentionedProject(user.userId);
+        return {
+          ...user,
+          mentionedProject: port
+        };
+      })
+    );
+    console.log('userWithPort:', userWithPort);
     const totalPages = Math.ceil(query.top / query.limit);
     return {
-      users,
+      users: userWithPort,
       page: query.page,
       pageSize: users.length,
       totalPages: totalPages,
