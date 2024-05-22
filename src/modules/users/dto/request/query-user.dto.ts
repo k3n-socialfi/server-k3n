@@ -12,6 +12,28 @@ export enum ReviewQuery {
   FourFive = '4-5'
 }
 
+export enum FollowerQuery {
+  OneTwo = '1k-2k',
+  TwoThree = '2k-3k',
+  ThreeFour = '3k-4k',
+  FourFive = '4k-5k',
+  FiveTen = '5k-10k',
+  TenTwenty = '10k-20k',
+  OverTwenty = '>20k'
+}
+
+export enum ShillScoreQuery {
+  OneTwo = '100-200',
+  TwoThree = '200-300',
+  ThreeFour = '300-400',
+  FourFive = '400-500',
+  FiveSix = '500-600',
+  SixSeven = '600-700',
+  SevenEight = '700-800',
+  EightNine = '800-900',
+  OverNine = '>900'
+}
+
 export class RequestUserQuery extends PaginationParams {
   @IsOptional()
   @Type(() => String)
@@ -36,20 +58,6 @@ export class RequestUserQuery extends PaginationParams {
   @ApiProperty({ required: false })
   // @IsBoolean()
   verification?: Boolean;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  @ApiProperty({ required: false, default: 0 })
-  lowerLimit?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Max(10000000)
-  @ApiProperty({ required: false, default: 10000000 })
-  upperLimit?: number;
 
   @IsOptional()
   @Type(() => String)
@@ -124,20 +132,6 @@ export class RequestKolsRanking extends PaginationParams {
   verification?: Boolean;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  @ApiProperty({ required: false, default: 0 })
-  lowerLimit?: number;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Max(10000000)
-  @ApiProperty({ required: false, default: 10000000 })
-  upperLimit?: number;
-
-  @IsOptional()
   @Type(() => String)
   // @IsArray()
   @ApiProperty({ required: false })
@@ -148,4 +142,22 @@ export class RequestKolsRanking extends PaginationParams {
   @IsString()
   @ApiProperty({ required: false, enum: ReviewQuery })
   review?: ReviewQuery;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  @ApiProperty({ required: false, enum: FollowerQuery })
+  follower?: FollowerQuery;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  @ApiProperty({ required: false, enum: ShillScoreQuery })
+  shillScore?: ShillScoreQuery;
+
+  @IsOptional()
+  @Type(() => String)
+  // @IsArray()
+  @ApiProperty({ required: false })
+  mentionedProject?: string;
 }

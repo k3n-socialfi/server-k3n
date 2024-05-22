@@ -177,10 +177,6 @@ export class UserService {
     const tagsQuery: any = typeof query.tags === 'string' ? [query.tags] : query.tags;
     // query conditions
     const whereConditions: any = {};
-    whereConditions['twitterInfo.followers'] = {
-      $gte: query.lowerLimit ? query.lowerLimit : 0,
-      $lte: query.upperLimit ? query.upperLimit : 10000000
-    };
 
     if (query.username) {
       whereConditions.username = query.username;
@@ -344,12 +340,9 @@ export class UserService {
     const skip = query.page * query.limit;
 
     const tagsQuery: any = typeof query.tags === 'string' ? [query.tags] : query.tags;
+
     const whereConditions: any = {};
 
-    whereConditions['twitterInfo.followers'] = {
-      $gte: query.lowerLimit ? query.lowerLimit : 0,
-      $lte: query.upperLimit ? query.upperLimit : 10000000
-    };
     if (query.type) {
       whereConditions.type = { $eq: query.type };
     }
@@ -367,6 +360,31 @@ export class UserService {
       whereConditions.review = { $gte: review[0], $lte: review[1] };
     }
 
+    if (query.follower) {
+      if (query.follower == '>20k') {
+        whereConditions['twitterInfo.followers'] = { $gte: 20000 };
+      } else {
+        let follower = query.follower.replace('k', '000').replace('k', '000').split('-').map(Number);
+        whereConditions['twitterInfo.followers'] = { $gte: follower[0], $lte: follower[1] };
+      }
+    }
+
+    if (query.shillScore) {
+      if (query.shillScore == '>900') {
+        whereConditions['twitterInfo.totalPoints'] = { $gte: 900 };
+      } else {
+        let shillScore = query.shillScore.split('-').map(Number);
+        whereConditions['twitterInfo.totalPoints'] = { $gte: shillScore[0], $lte: shillScore[1] };
+      }
+    }
+
+    if (query.mentionedProject) {
+      whereConditions['$or'] = [
+        { 'mentionedProject.tokenName': query.mentionedProject },
+        { 'mentionedProject.symbol': query.mentionedProject }
+      ];
+    }
+
     const aggregationPipeline = [
       {
         $lookup: {
@@ -378,13 +396,25 @@ export class UserService {
       },
       { $unwind: '$twitterInfo' },
       {
+        $lookup: {
+          from: 'twitter-portfolio',
+          localField: 'userId',
+          foreignField: 'userId',
+          as: 'mentionedProject'
+        }
+      },
+      { $unwind: '$mentionedProject' },
+
+      {
         $match: whereConditions
       },
       {
         $project: {
           _id: 0,
           password: 0,
-          'twitterInfo._id': 0
+          'twitterInfo._id': 0,
+          'mentionedProject._id': 0,
+          'mentionedProject.userId': 0
         }
       },
       { $sort: { 'twitterInfo.totalPoints': -1 } },
@@ -394,19 +424,19 @@ export class UserService {
 
     const users = await this.userRep.aggregate(aggregationPipeline).toArray();
 
-    const userWithPort = await Promise.all(
-      users.map(async (user) => {
-        const port = await this.twitterService.getMentionedProject(user.userId);
-        return {
-          ...user,
-          mentionedProject: port
-        };
-      })
-    );
-    console.log('userWithPort:', userWithPort);
+    // const userWithPort = await Promise.all(
+    //   users.map(async (user) => {
+    //     const port = await this.twitterService.getMentionedProject(user.userId);
+    //     return {
+    //       ...user,
+    //       mentionedProject: port
+    //     };
+    //   })
+    // );
+    // console.log('userWithPort:', userWithPort);
     const totalPages = Math.ceil(query.top / query.limit);
     return {
-      users: userWithPort,
+      users: users,
       page: query.page,
       pageSize: users.length,
       totalPages: totalPages,

@@ -105,9 +105,9 @@ export class TwitterService {
     // const royaltyPoints = user.royaltyPoints;
 
     console.log('twitterPoints:', twitterPoints);
-    let savePoint = Math.floor((100 * twitterPoints) / 50000000);
-    if (savePoint > 100) savePoint = 100;
-    if (savePoint < 1 && twitterPoints > 0) savePoint = 1;
+    let savePoint = Math.floor((1000 * twitterPoints) / 50000000);
+    if (savePoint > 1000) savePoint = 1000;
+    if (savePoint < 10 && twitterPoints > 0) savePoint = 10;
     console.log('savePoint:', savePoint);
 
     twitterUser.twitterPoints = savePoint;
@@ -133,9 +133,9 @@ export class TwitterService {
       // const royaltyPoints = user.royaltyPoints;
 
       console.log('twitterPoints:', twitterPoints);
-      let savePoint = Math.floor((100 * twitterPoints) / 50000000);
-      if (savePoint > 100) savePoint = 100;
-      if (savePoint < 1 && twitterPoints > 0) savePoint = 1;
+      let savePoint = Math.floor((1000 * twitterPoints) / 50000000);
+      if (savePoint > 1000) savePoint = 1000;
+      if (savePoint < 10 && twitterPoints > 0) savePoint = 10;
       console.log('savePoint:', savePoint);
 
       twitterUsers[i].twitterPoints = savePoint;
