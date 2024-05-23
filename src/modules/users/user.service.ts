@@ -360,22 +360,19 @@ export class UserService {
       whereConditions.review = { $gte: review[0], $lte: review[1] };
     }
 
-    if (query.follower) {
-      if (query.follower == '>20k') {
-        whereConditions['twitterInfo.followers'] = { $gte: 20000 };
-      } else {
-        let follower = query.follower.replace('k', '000').replace('k', '000').split('-').map(Number);
-        whereConditions['twitterInfo.followers'] = { $gte: follower[0], $lte: follower[1] };
-      }
+    if (query.minFollower || query.maxFollower) {
+      let minFollower = query.minFollower ? query.minFollower : 0;
+      let maxFollower = query.maxFollower ? query.maxFollower : 10000000;
+      if (minFollower > maxFollower) throw new BadRequestException('maxFollower must be greater then minFollower');
+      whereConditions['twitterInfo.followers'] = { $gte: minFollower, $lte: maxFollower };
     }
 
-    if (query.shillScore) {
-      if (query.shillScore == '>900') {
-        whereConditions['twitterInfo.totalPoints'] = { $gte: 900 };
-      } else {
-        let shillScore = query.shillScore.split('-').map(Number);
-        whereConditions['twitterInfo.totalPoints'] = { $gte: shillScore[0], $lte: shillScore[1] };
-      }
+    if (query.minShillScore || query.maxShillScore) {
+      let minShillScore = query.minShillScore ? query.minShillScore : 0;
+      let maxShillScore = query.maxShillScore ? query.maxShillScore : 10000000;
+      if (minShillScore > maxShillScore)
+        throw new BadRequestException('minShillScore must be greater then maxShillScore');
+      whereConditions['twitterInfo.totalPoints'] = { $gte: minShillScore, $lte: maxShillScore };
     }
 
     if (query.mentionedProject) {

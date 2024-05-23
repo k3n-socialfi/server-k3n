@@ -143,17 +143,41 @@ export class RequestKolsRanking extends PaginationParams {
   @ApiProperty({ required: false, enum: ReviewQuery })
   review?: ReviewQuery;
 
-  @IsOptional()
-  @Type(() => String)
-  @IsString()
-  @ApiProperty({ required: false, enum: FollowerQuery })
-  follower?: FollowerQuery;
+  // @IsOptional()
+  // @Type(() => String)
+  // @IsString()
+  // @ApiProperty({ required: false, enum: FollowerQuery })
+  // follower?: FollowerQuery;
 
   @IsOptional()
-  @Type(() => String)
-  @IsString()
-  @ApiProperty({ required: false, enum: ShillScoreQuery })
-  shillScore?: ShillScoreQuery;
+  @Type(() => Number)
+  @IsNumber()
+  @ApiProperty({ required: false })
+  minFollower: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @ApiProperty({ required: false })
+  maxFollower: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @ApiProperty({ required: false })
+  minShillScore: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @ApiProperty({ required: false })
+  maxShillScore: number;
+
+  // @IsOptional()
+  // @Type(() => String)
+  // @IsString()
+  // @ApiProperty({ required: false, enum: ShillScoreQuery })
+  // shillScore?: ShillScoreQuery;
 
   @IsOptional()
   @Type(() => String)
