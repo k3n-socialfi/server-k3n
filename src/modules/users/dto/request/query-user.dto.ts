@@ -34,6 +34,12 @@ export enum ShillScoreQuery {
   OverNine = '>900'
 }
 
+export enum DateQuery {
+  OneDay = '1D',
+  SevenDays = '7D',
+  ThirtyDays = '30D'
+}
+
 export class RequestUserQuery extends PaginationParams {
   @IsOptional()
   @Type(() => String)
@@ -78,6 +84,12 @@ export class RequestKolsTrending extends PaginationParams {
   @IsString()
   @ApiProperty({ required: false, enum: UserType })
   type?: UserType;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  @ApiProperty({ required: false, enum: DateQuery })
+  date?: DateQuery;
 
   // @IsOptional()
   // @Type(() => Boolean)

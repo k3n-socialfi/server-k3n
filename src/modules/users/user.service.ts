@@ -16,7 +16,7 @@ import { ErrorsCodes, ErrorsMap } from '@common/constants/respond-errors';
 import { InternalUserResponseDto, UserListResponseDto, UserResponseDto } from './dto/response/user-response.dto';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Role } from '@common/constants/enum';
-import { RequestKolsRanking, RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
+import { DateQuery, RequestKolsRanking, RequestKolsTrending, RequestUserQuery } from './dto/request/query-user.dto';
 import { UpdateUserByAdminDto } from './dto/request/admin-update-user.dto';
 import { TwitterService } from '../twitter/twitter.service';
 import { Cache } from 'cache-manager';
@@ -286,6 +286,9 @@ export class UserService {
   }
 
   async findKolsTrending(query: RequestKolsTrending) {
+    if (query.date == DateQuery.OneDay) query.page = 3;
+    else if (query.date == DateQuery.SevenDays) query.page = 4;
+    else query.page = 5;
     const skip = query.page * query.limit;
 
     // query conditions
@@ -314,7 +317,7 @@ export class UserService {
           'twitterInfo._id': 0
         }
       },
-      { $sort: { 'twitterInfo.followers': -1 } },
+      { $sort: { 'twitterInfo.totalPoints': -1 } },
       { $skip: skip > 0 ? skip : 0 },
       { $limit: query.limit }
     ];
