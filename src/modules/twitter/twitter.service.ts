@@ -37,7 +37,18 @@ export class TwitterService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
 
-  @Cron(CronExpression.EVERY_12_HOURS)
+  @Cron('0 0 * * *')
+  // @Timeout(0)
+  async KolsRankingJob() {
+    try {
+      console.log('Start update ranking job !');
+      await this.updateRanks();
+      console.log('End update ranking job !');
+    } catch (err) {
+      console.log('err:', err);
+    }
+  }
+  // @Cron(CronExpression.EVERY_12_HOURS)
   // @Timeout(0)
   async TwitterJob() {
     try {
@@ -161,6 +172,27 @@ export class TwitterService {
       this.logger.error(err?.response?.data?.errors, err.stack, TwitterService.name);
       throw new InternalServerErrorException(err?.response?.data?.errors);
     }
+  }
+
+  async updateRanks() {
+    const users = await this.twitterUsersRep.find({
+      order: {
+        totalPoints: 'DESC'
+      }
+    });
+
+    // Assign ranks based on the sorted order
+    const rank = await Promise.all(
+      users.map(async (user, index) => {
+        user.previousRank = index + 1;
+        await this.twitterUsersRep.save(user);
+        return {
+          userId: user.userId,
+          rank: index + 1
+        };
+      })
+    );
+    return rank;
   }
 
   async findTwitterUsersById(id: string) {

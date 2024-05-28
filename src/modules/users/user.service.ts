@@ -398,12 +398,11 @@ export class UserService {
       {
         $lookup: {
           from: 'twitter-portfolio',
-          localField: 'userId',
-          foreignField: 'userId',
-          as: 'mentionedProject'
+          let: { userId: '$userId' },
+          pipeline: [{ $match: { $expr: { $eq: ['$userId', '$$userId'] } } }, { $project: { _id: 0, userId: 0 } }],
+          as: 'mentionedProjects'
         }
       },
-      { $unwind: '$mentionedProject' },
 
       {
         $match: whereConditions
@@ -423,6 +422,7 @@ export class UserService {
     ];
 
     const users = await this.userRep.aggregate(aggregationPipeline).toArray();
+    console.log('users:', users);
 
     // const userWithPort = await Promise.all(
     //   users.map(async (user) => {

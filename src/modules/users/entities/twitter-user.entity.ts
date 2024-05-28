@@ -21,6 +21,9 @@ export class TwitterUsers extends AbstractEntity {
   @Column({ nullable: true, default: 0 })
   totalPoints: number;
 
+  @Column({ nullable: true, default: 0 })
+  previousRank: number;
+
   @Column({ nullable: true, default: null })
   avatar: string;
 
