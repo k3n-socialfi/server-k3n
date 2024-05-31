@@ -185,6 +185,10 @@ export class TwitterService {
     const rank = await Promise.all(
       users.map(async (user, index) => {
         user.previousRank = index + 1;
+        // const random7D = this.getRandomNumber(-15, 15);
+        // user.previous7DRank = index + random7D > 0 ? index + random7D : -(index + random7D);
+        // const random30D = this.getRandomNumber(-30, 30);
+        // user.previous30DRank = index + random30D > 0 ? index + random30D : -(index + random30D);
         await this.twitterUsersRep.save(user);
         return {
           userId: user.userId,
@@ -194,7 +198,9 @@ export class TwitterService {
     );
     return rank;
   }
-
+  getRandomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
   async findTwitterUsersById(id: string) {
     try {
       const headers = this.configService.get('rapidApi');
