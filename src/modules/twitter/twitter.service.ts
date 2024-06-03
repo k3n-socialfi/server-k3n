@@ -37,7 +37,7 @@ export class TwitterService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
 
-  @Cron('0 0 * * *')
+  //@Cron('0 0 * * *')
   // @Timeout(0)
   async KolsRankingJob() {
     try {
