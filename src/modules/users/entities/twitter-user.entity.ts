@@ -30,6 +30,15 @@ export class TwitterUsers extends AbstractEntity {
   @Column({ nullable: true, default: 0 })
   previous30DRank: number;
 
+  @Column({ nullable: true, default: 0 })
+  previousPoint: number;
+
+  @Column({ nullable: true, default: 0 })
+  previous7DPoint: number;
+
+  @Column({ nullable: true, default: 0 })
+  previous30DPoint: number;
+
   @Column({ nullable: true, default: null })
   avatar: string;
 
