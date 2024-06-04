@@ -37,7 +37,7 @@ export class TwitterService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: Logger
   ) {}
 
-  @Cron('0 0 * * *')
+  //@Cron('0 0 * * *')
   // @Timeout(0)
   async KolsRankingJob() {
     try {
@@ -48,10 +48,39 @@ export class TwitterService {
       console.log('err:', err);
     }
   }
+
+  // 7 day update
+  @Cron('0 0 * * 0')
+  // @Timeout(0)
+  async KolsRankingJob7DaysUpdate() {
+    try {
+      console.log('Start 7 days update ranking job !');
+      await this.updateRanks7Days();
+      console.log('End 7 days update ranking job !');
+    } catch (err) {
+      console.log('err:', err);
+    }
+  }
+
+  @Cron('0 0 1 * *')
+  // @Timeout(0)
+  async KolsRankingJob30DaysUpdate() {
+    try {
+      console.log('Start 30 days update ranking job !');
+      await this.updateRanks7Days();
+      console.log('End 30 days update ranking job !');
+    } catch (err) {
+      console.log('err:', err);
+    }
+  }
   // @Cron(CronExpression.EVERY_12_HOURS)
   // @Timeout(0)
+  @Cron('0 0 * * *')
   async TwitterJob() {
     try {
+      console.log('Start run update previous point !');
+      await this.KolsRankingJob();
+
       console.log('Start run twitter job !');
 
       // Get points
@@ -184,11 +213,56 @@ export class TwitterService {
     // Assign ranks based on the sorted order
     const rank = await Promise.all(
       users.map(async (user, index) => {
-        user.previousRank = index + 1;
+        user.previousPoint = user.totalPoints;
+        //user.previousRank = index + 1;
         // const random7D = this.getRandomNumber(-15, 15);
         // user.previous7DRank = index + random7D > 0 ? index + random7D : -(index + random7D);
         // const random30D = this.getRandomNumber(-30, 30);
         // user.previous30DRank = index + random30D > 0 ? index + random30D : -(index + random30D);
+        await this.twitterUsersRep.save(user);
+        return {
+          userId: user.userId,
+          rank: index + 1
+        };
+      })
+    );
+    return rank;
+  }
+
+  async updateRanks7Days() {
+    // const users = await this.twitterUsersRep.find({
+    //   order: {
+    //     totalPoints: 'DESC'
+    //   }
+    // });
+
+    // get user
+    const users = await this.twitterUsersRep.find();
+
+    // Assign ranks based on the sorted order
+    const rank = await Promise.all(
+      users.map(async (user, index) => {
+        user.previousPoint = user.totalPoints;
+
+        await this.twitterUsersRep.save(user);
+        return {
+          userId: user.userId,
+          rank: index + 1
+        };
+      })
+    );
+    return rank;
+  }
+
+  async updateRanks30Days() {
+    // get user
+    const users = await this.twitterUsersRep.find();
+
+    // Assign ranks based on the sorted order
+    const rank = await Promise.all(
+      users.map(async (user, index) => {
+        user.previousPoint = user.totalPoints;
+
         await this.twitterUsersRep.save(user);
         return {
           userId: user.userId,
