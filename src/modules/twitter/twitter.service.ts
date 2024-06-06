@@ -50,7 +50,7 @@ export class TwitterService {
   }
 
   // 7 day update
-  @Cron('0 0 * * 0')
+  //@Cron('0 0 * * 0')
   // @Timeout(0)
   async KolsRankingJob7DaysUpdate() {
     try {
@@ -62,12 +62,12 @@ export class TwitterService {
     }
   }
 
-  @Cron('0 0 1 * *')
+  //@Cron('0 0 1 * *')
   // @Timeout(0)
   async KolsRankingJob30DaysUpdate() {
     try {
       console.log('Start 30 days update ranking job !');
-      await this.updateRanks7Days();
+      await this.updateRanks30Days();
       console.log('End 30 days update ranking job !');
     } catch (err) {
       console.log('err:', err);
@@ -80,6 +80,8 @@ export class TwitterService {
     try {
       console.log('Start run update previous point !');
       await this.KolsRankingJob();
+      await this.KolsRankingJob7DaysUpdate();
+      await this.KolsRankingJob30DaysUpdate();
 
       console.log('Start run twitter job !');
 
@@ -242,7 +244,7 @@ export class TwitterService {
     // Assign ranks based on the sorted order
     const rank = await Promise.all(
       users.map(async (user, index) => {
-        user.previousPoint = user.totalPoints;
+        user.previous7DPoint = user.totalPoints;
 
         await this.twitterUsersRep.save(user);
         return {
@@ -261,7 +263,7 @@ export class TwitterService {
     // Assign ranks based on the sorted order
     const rank = await Promise.all(
       users.map(async (user, index) => {
-        user.previousPoint = user.totalPoints;
+        user.previous30DPoint = user.totalPoints;
 
         await this.twitterUsersRep.save(user);
         return {
