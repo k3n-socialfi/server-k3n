@@ -87,8 +87,10 @@ export class TwitterService {
 
       // Get points
       //await this.twitterPointsCalculation();
+
       await this.twitterPointsCalculationNewVersion();
-      // await this.twitterPointsCalculationByUsername('DustinH_13');
+
+      //await this.twitterPointsCalculationByUsernameNewVersion('DustinH_13');
 
       // Create User's Portfolio
       //await this.createUserTwitterPortfolio();
@@ -901,11 +903,16 @@ export class TwitterService {
 
   async getUserTwitterPortfolio(username: string) {
     const userId = await this.findTwitterUserId(username);
+
+    //test only
+    //const userId = '1380192890068951043';
     const userPortfolio = await this.twitterPortfolioRep.find({
       where: {
         userId
       }
     });
+
+    //console.log('mock 2.1',userPortfolio);
 
     const portResponse = await Promise.all(
       userPortfolio.map(async (port) => {
@@ -1028,5 +1035,49 @@ export class TwitterService {
     const shill = 9998 * raw + 1;
 
     return shill;
+  }
+
+  async twitterPointsCalculationByUsernameNewVersion(username: string) {
+    const twitterUser = await this.twitterUsersRep.findOne({
+      where: {
+        username
+      }
+    });
+    //console.log('mock 1', twitterUser);
+    const twPoints = await this.getUserTweetPoints({ username });
+
+    let view = twPoints.latestTweet.views;
+    let like = twPoints.latestTweet.favoriteCount;
+    let retweet = twPoints.latestTweet.retweetCount;
+    let reply = twPoints.latestTweet.replyCount;
+
+    // test only
+    //let view:any = 10000;
+    //let like:any = 5000;
+    //let retweet:any = 1000;
+    //let reply:any = 100;
+
+    const userPortfolio = await this.getUserTwitterPortfolio(username);
+
+    //console.log('mock 2', userPortfolio);
+
+    const shillScoresList: number[] = [];
+
+    for (let k = 0; k < userPortfolio.length; k++){
+      const shillScore = await this.calculateShillScoreNewVersion(view, like, retweet, reply, userPortfolio[k].ath, userPortfolio[k].currentPrice);
+      shillScoresList.push(shillScore);
+    }
+
+    // calculate average shill score
+    const total = shillScoresList.reduce((sum, score) => sum + score, 0);
+    let finalScore = Math.floor(total / shillScoresList.length);
+
+    if (finalScore > 9999) finalScore = 9999;
+    if (finalScore < 1) finalScore = 1;
+    console.log('savePoint:', finalScore);
+
+    twitterUser.twitterPoints = finalScore;
+
+    await this.twitterUsersRep.save(twitterUser);
   }
 }

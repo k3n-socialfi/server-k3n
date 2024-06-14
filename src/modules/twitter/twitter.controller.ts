@@ -32,6 +32,7 @@ export class TwitterController {
       code: 200,
       message: 'Get all user successful',
       data: await this.twitterService.findTwitterUsersById(id)
+      //data: await this.twitterService.TwitterJob()
     };
   }
 
@@ -100,6 +101,15 @@ export class TwitterController {
       code: 200,
       message: "Get user's tweets points successful",
       data: await this.twitterService.getUserTweetPoints({ username })
+    };
+  }
+
+  @Get('points/test/:username')
+  public async testTweetsPoints(@Param('username') username: string) {
+    return {
+      code: 200,
+      message: "Get user's tweets points successful",
+      data: await this.twitterService.TwitterJob()
     };
   }
 }
