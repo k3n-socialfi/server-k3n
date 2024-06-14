@@ -23,8 +23,8 @@ export const TwitterEndpoints = {
   // RETWEETS
   RETWEETED_BY: 'https://api.twitter.com/2/tweets/:id/retweeted_by'
 };
-
 export const RapidApiEndpoints = {
+
   //USER
   USER_DETAILS: 'https://twitter154.p.rapidapi.com/user/details',
 
