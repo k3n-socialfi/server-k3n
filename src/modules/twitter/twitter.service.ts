@@ -74,8 +74,8 @@ export class TwitterService {
     }
   }
   // @Cron(CronExpression.EVERY_12_HOURS)
-  // @Timeout(0)
   //@Cron('0 0 * * *')
+  @Timeout(0)
   async TwitterJob() {
     try {
       console.log('Start run update previous point !');
@@ -88,10 +88,11 @@ export class TwitterService {
       // Get points
       //await this.twitterPointsCalculation();
 
-      //await this.twitterPointsCalculationNewVersion();
+      await this.twitterPointsCalculationNewVersion();
 
-      await this.twitterPointsCalculationByUsernameNewVersion('DustinH_13');
-
+      //await this.twitterPointsCalculationByUsernameNewVersion('DustinH_13');
+      //await this.twitterPointsCalculationByUsernameNewVersion('Emiel_ETN');
+      //await this.twitterPointsCalculationByUsernameNewVersion('cokiramirez');
       // Create User's Portfolio
       //await this.createUserTwitterPortfolio();
 
@@ -1013,11 +1014,13 @@ export class TwitterService {
         shillScoresList.push(shillScore);
       }
 
+      //console.log('shill list',shillScoresList);
       // calculate average shill score
       const total = shillScoresList.reduce((sum, score) => sum + score, 0);
       let finalScore = Math.floor(total / shillScoresList.length);
+      //console.log('shill score',finalScore);
 
-      if (finalScore > 9999) finalScore = 9999;
+      //if (finalScore > 9999) finalScore = 9999;
       if (finalScore < 1) finalScore = 1;
       console.log('savePoint:', finalScore);
 
@@ -1029,7 +1032,13 @@ export class TwitterService {
 
   async calculateShillScoreNewVersion(view: number, like: number, retweet: number, reply: number, ath: number, currentPrice: number) {
     // Calculate the weighted raw score
-    const raw = (view + 2 * like + 4 * (retweet + reply)) / 11 + (3 * ath + currentPrice) / 4;
+    let v = (view - 100) / (100000 - 100);
+    let l = (like - 10) / (10000 - 10);
+    let r = (retweet - 10) / (2000 - 10);
+    let rp = (reply - 5) / (1000 - 5);
+    let new_ath = (ath + 90) / (10000 + 90);
+    let c = (currentPrice + 90) / (10000 + 90);
+    const raw = (v + 2 * l + 4 * (r + rp)) / 11 + (3 * new_ath + c) / 4;
 
     // Calculate the shill score
     const shill = 9998 * raw + 1;
@@ -1056,6 +1065,10 @@ export class TwitterService {
     //let like:any = 5000;
     //let retweet:any = 1000;
     //let reply:any = 100;
+    console.log('view',view);
+    console.log('like',like);
+    console.log('retweet',retweet);
+    console.log('reply',reply);
 
     const userPortfolio = await this.getUserTwitterPortfolio(username);
 
@@ -1068,11 +1081,15 @@ export class TwitterService {
       shillScoresList.push(shillScore);
     }
 
+    console.log('shill score list',shillScoresList);
     // calculate average shill score
     const total = shillScoresList.reduce((sum, score) => sum + score, 0);
+    console.log('total',total);
     let finalScore = Math.floor(total / shillScoresList.length);
 
-    if (finalScore > 9999) finalScore = 9999;
+    console.log('final score',finalScore);
+
+    //if (finalScore > 9999) finalScore = 9999;
     if (finalScore < 1) finalScore = 1;
     console.log('savePoint:', finalScore);
 
