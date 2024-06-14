@@ -75,7 +75,7 @@ export class TwitterService {
   }
   // @Cron(CronExpression.EVERY_12_HOURS)
   // @Timeout(0)
-  @Cron('0 0 * * *')
+  //@Cron('0 0 * * *')
   async TwitterJob() {
     try {
       console.log('Start run update previous point !');
@@ -88,9 +88,9 @@ export class TwitterService {
       // Get points
       //await this.twitterPointsCalculation();
 
-      await this.twitterPointsCalculationNewVersion();
+      //await this.twitterPointsCalculationNewVersion();
 
-      //await this.twitterPointsCalculationByUsernameNewVersion('DustinH_13');
+      await this.twitterPointsCalculationByUsernameNewVersion('DustinH_13');
 
       // Create User's Portfolio
       //await this.createUserTwitterPortfolio();
