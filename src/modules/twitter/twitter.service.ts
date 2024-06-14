@@ -74,8 +74,8 @@ export class TwitterService {
     }
   }
   // @Cron(CronExpression.EVERY_12_HOURS)
-  // @Timeout(0)
   //@Cron('0 0 * * *')
+  @Timeout(0)
   async TwitterJob() {
     try {
       console.log('Start run update previous point !');
@@ -88,10 +88,11 @@ export class TwitterService {
       // Get points
       //await this.twitterPointsCalculation();
 
-      //await this.twitterPointsCalculationNewVersion();
+      await this.twitterPointsCalculationNewVersion();
 
-      await this.twitterPointsCalculationByUsernameNewVersion('DustinH_13');
-
+      //await this.twitterPointsCalculationByUsernameNewVersion('DustinH_13');
+      //await this.twitterPointsCalculationByUsernameNewVersion('Emiel_ETN');
+      //await this.twitterPointsCalculationByUsernameNewVersion('cokiramirez');
       // Create User's Portfolio
       //await this.createUserTwitterPortfolio();
 
@@ -1013,11 +1014,11 @@ export class TwitterService {
         shillScoresList.push(shillScore);
       }
 
-      console.log('shill list',shillScoresList);
+      //console.log('shill list',shillScoresList);
       // calculate average shill score
       const total = shillScoresList.reduce((sum, score) => sum + score, 0);
       let finalScore = Math.floor(total / shillScoresList.length);
-      console.log('shill score',finalScore);
+      //console.log('shill score',finalScore);
 
       //if (finalScore > 9999) finalScore = 9999;
       if (finalScore < 1) finalScore = 1;
