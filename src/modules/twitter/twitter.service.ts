@@ -1065,10 +1065,10 @@ export class TwitterService {
     //let like:any = 5000;
     //let retweet:any = 1000;
     //let reply:any = 100;
-    console.log('view',view);
-    console.log('like',like);
-    console.log('retweet',retweet);
-    console.log('reply',reply);
+    // console.log('view',view);
+    // console.log('like',like);
+    // console.log('retweet',retweet);
+    // console.log('reply',reply);
 
     const userPortfolio = await this.getUserTwitterPortfolio(username);
 

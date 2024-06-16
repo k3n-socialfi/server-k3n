@@ -148,7 +148,7 @@ export class UserController {
   @Get('profile/:username')
   @ApiResponse({
     description: 'Get profile user by username response',
-    type: SwaggerUserResponseDto
+    type: SwaggeUserResponseDto
   })
   public async getProfileUserById(@Param('username') username: string) {
     return {
@@ -164,7 +164,7 @@ export class UserController {
     type: SwaggerUserResponseDto
   })
   @UseGuards(AccessTokenGuard)
-  public async getMyProfile(@Req() req: Request) {
+  public async gtMyProfile(@Req() req: Request) {
     const userObject = JSON.parse(JSON.stringify(req.user));
     return {
       code: 200,
