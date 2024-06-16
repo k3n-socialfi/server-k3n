@@ -196,4 +196,16 @@ export class RequestKolsRanking extends PaginationParams {
   // @IsArray()
   @ApiProperty({ required: false })
   mentionedProject?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @ApiProperty({ required: false })
+  shillScoreSort: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @ApiProperty({ required: false })
+  xFollowerSort: number;
 }
