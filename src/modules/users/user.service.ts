@@ -384,6 +384,24 @@ export class UserService {
         { 'mentionedProject.symbol': query.mentionedProject }
       ];
     }
+    let sortBy: string;
+    let orderBy: number;
+    //const sortBy: string;
+    // const sortBy = query.shillScoreSort ? query.shillScoreSort : 'twitterInfo.totalPoints';
+    // const sortBy = query.xFollowerSort ? query.xFollowerSort : 'twitterInfo.followers';
+    if (query.shillScoreSort) {
+      sortBy = 'twitterInfo.totalPoints';
+      orderBy = query.shillScoreSort;
+    } else if (query.xFollowerSort) {
+      sortBy = 'twitterInfo.followers';
+      orderBy = query.xFollowerSort;
+    } else {
+      sortBy = 'twitterInfo.totalPoints';
+      orderBy = -1;
+    }
+
+    const sortObject = {};
+    sortObject[sortBy] = orderBy;
 
     const aggregationPipeline = [
       {
@@ -416,11 +434,12 @@ export class UserService {
           'mentionedProject.userId': 0
         }
       },
-      { $sort: { 'twitterInfo.totalPoints': -1 } },
+      { $sort: sortObject },
       { $skip: skip > 0 ? skip : 0 },
       { $limit: query.limit > query.top ? query.top : query.limit }
     ];
 
+    console.log('aggregation',aggregationPipeline);
     const users = await this.userRep.aggregate(aggregationPipeline).toArray();
     console.log('users:', users);
 
