@@ -1,0 +1,135 @@
+% Created 2024-06-16 Sun 22:29
+% Intended LaTeX compiler: xelatex
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\usepackage[capitalize]{cleveref}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\author{Dang Quang Vu}
+\date{\today}
+\title{shillscore calculation}
+\hypersetup{
+ pdfauthor={Dang Quang Vu},
+ pdftitle={shillscore calculation},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 30.0.50 (Org mode 9.7-pre)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+
+\section{Shill Score Calculation}
+\label{sec:orgc1c9252}
+\subsection{Parameters}
+\label{sec:org5e3c299}
+\begin{itemize}
+\item X performance
+\item Views: average views in last … posts
+\item Likes: average likes in last … posts
+\item Retweets: average retweets in last … posts
+\item Reply: average reply count in last … posts
+\item Shill performance
+\begin{itemize}
+\item Average \% to ATH after first post in 30D: ((ATH - price-at-post) * 100) / Price-at-post
+\item Average \% change at current price: ((Current-price - price-at-post) * 100) / Price-at-post
+\end{itemize}
+\end{itemize}
+
+\subsection{Calculation}
+\label{sec:org25cc54c}
+\subsubsection{Min – Max Scaling}
+\label{sec:orgc3e1cce}
+\begin{itemize}
+\item Views:
+\begin{itemize}
+\item \(v = \frac{\text{average views} - \text{Min}(v)}{\text{Max}(v) - \text{Min}(v)}\)
+\item Min(v) = 100
+\item Max(v) = 100,000
+\end{itemize}
+
+\item Likes:
+\begin{itemize}
+\item \(l = \frac{\text{average likes} - \text{Min}(l)}{\text{Max}(l) - \text{Min}(l)}\)
+\item Min(l) = 10
+\item Max(l) = 10,000
+\end{itemize}
+
+\item Retweets:
+\begin{itemize}
+\item \(r = \frac{\text{average retweets} - \text{Min}(r)}{\text{Max}(r) - \text{Min}(r)}\)
+\item Min(r) = 10
+\item Max(r) = 2,000
+\end{itemize}
+
+\item Replies:
+\begin{itemize}
+\item \(rp = \frac{\text{average replies} - \text{Min}(rp)}{\text{Max}(rp) - \text{Min}(rp)}\)
+\item Min(rp) = 5
+\item Max(rp) = 1,000
+\end{itemize}
+
+\item \% to ATH:
+\begin{itemize}
+\item \(ath = \frac{\text{average ATH} - \text{Min}(ath)}{\text{Max}(ath) - \text{Min}(ath)}\)
+\item Min(ath) = -90
+\item Max(ath) = 10,000 (100x)
+\end{itemize}
+
+\item \% change at current price:
+\begin{itemize}
+\item \(c = \frac{\text{average \% change} - \text{Min}(c)}{\text{Max}(c) - \text{Min}(c)}\)
+\item Min(c) = -90
+\item Max(c) = 10,000 (100x)
+\end{itemize}
+\end{itemize}
+
+\subsubsection{Weighted Raw Score}
+\label{sec:org563ff8c}
+\begin{itemize}
+\item \(\text{raw} = v + 2l + 4r + rp + \frac{11 + 3ath + c}{4}\)
+\end{itemize}
+
+\subsubsection{Shill Score (1 – 9999)}
+\label{sec:org481f3e6}
+\begin{itemize}
+\item \(\text{shill} = 9998 \cdot \text{raw} + 1\)
+\end{itemize}
+
+\subsection{Test Case}
+\label{sec:org7321ab1}
+\begin{center}
+\begin{tabular}{lrrrr}
+Parameter & Value & Min & Max & Scaled Value\\[0pt]
+\hline
+views & 10000 & 100 & 100000 & 0.099099099\\[0pt]
+likes & 5000 & 10 & 10000 & 0.499499499\\[0pt]
+retweets & 1000 & 5 & 2000 & 0.498746867\\[0pt]
+replies & 100 & 5 & 1000 & 0.095477387\\[0pt]
+\% to ATH & 1000 & -90 & 10000 & 0.10802775\\[0pt]
+\% current & 100 & -90 & 10000 & 0.018830525\\[0pt]
+\end{tabular}
+\end{center}
+
+\subsection{Calculations}
+\label{sec:org2bfd818}
+
+\begin{center}
+\begin{tabular}{llr}
+Parameter & Formula & Result\\[0pt]
+\hline
+raw & v + 2l + 4r + rp + (11 + 3ath + c)/4 & 2.00818545\\[0pt]
+shill & 9998 * raw + 1 & 20087.83817\\[0pt]
+\end{tabular}
+\end{center}
+\end{document}
