@@ -73,11 +73,16 @@ jobs:
 
     - name: Check if server-k3n is running
       id: check-server
-      run: pm2 describe server-k3n || echo "not found
+      run: |
+        if pm2 describe server-k3n > /dev/null; then
+          echo "exists=true" >> $GITHUB_ENV
+        else
+          echo "exists=false" >> $GITHUB_ENV
+        fi
 
     - name: Start or restart server
       run: |
-        if [ "${{ steps.check-server.outputs.stdout }}" == "not found" ]; then
+        if [ "$exists" == "false" ]; then
           pm2 start ./dist/main.js --name server-k3n -f --update-env
         else
           pm2 restart server-k3n --update-env
