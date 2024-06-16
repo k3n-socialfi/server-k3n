@@ -75,7 +75,7 @@ export class TwitterService {
   }
   // @Cron(CronExpression.EVERY_12_HOURS)
   //@Cron('0 0 * * *')
-  @Timeout(0)
+  //@Timeout(0)
   async TwitterJob() {
     try {
       console.log('Start run update previous point !');

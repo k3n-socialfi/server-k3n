@@ -39,5 +39,16 @@ export class CreateMessageDto {
   @ApiProperty({})
   @IsNumber()
   amount: number;
+}
 
+export class replyDto {
+  @ApiProperty({})
+  @IsNotEmpty()
+  @IsString()
+  reply: string;
+
+  @ApiProperty({})
+  @IsNotEmpty()
+  @IsString()
+  messageId: string;
 }

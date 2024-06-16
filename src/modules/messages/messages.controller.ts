@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Post, Put, Query, Req, UseGuards, Validat
 import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { AccessTokenGuard } from '../auth/guards/accessToken.guard';
 import { CreateMessageDto } from './dto/request/send-message.dto';
+import { replyDto } from './dto/request/send-message.dto';
 import { Request } from 'express';
 
 import { MessageService } from './messages.service';
@@ -37,6 +38,36 @@ export class MessagesController {
       code: 200,
       message: 'Get messages successful',
       data: await this.MessagesService.findMessages(userObject.sub)
+    };
+  }
+
+  @Put('message')
+  @UseGuards(AccessTokenGuard)
+  public async replyMessages(@Req() req: Request, @Body() request: replyDto) {
+    const userObject = JSON.parse(JSON.stringify(req.user));
+    // console.log('req:', req.user)
+    // let { page, limit } = query;
+    // page = page ? +page : 0;
+    // limit = limit ? +limit : 10;
+    return {
+      code: 200,
+      message: 'reply messages successful',
+      data: await this.MessagesService.replyMessages(userObject.sub, request)
+    };
+  }
+
+  @Get('order-message')
+  @UseGuards(AccessTokenGuard)
+  public async getOrderMessages(@Req() req: Request) {
+    const userObject = JSON.parse(JSON.stringify(req.user));
+    // console.log('req:', req.user)
+    // let { page, limit } = query;
+    // page = page ? +page : 0;
+    // limit = limit ? +limit : 10;
+    return {
+      code: 200,
+      message: 'Get order messages successful',
+      data: await this.MessagesService.findOrderMessages(userObject.sub)
     };
   }
 }

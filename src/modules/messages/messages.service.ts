@@ -18,6 +18,7 @@ import { generateId } from 'src/utils/helper';
 import { Cache } from 'cache-manager';
 import { UserService } from '../users/user.service';
 import { CreateMessageDto } from './dto/request/send-message.dto';
+import { replyDto } from './dto/request/send-message.dto';
 import { Messages } from './entities/messages.entity';
 
 @Injectable()
@@ -60,6 +61,33 @@ export class MessageService {
       return messageData;
     });
     return messagesResponse;
+  }
+
+  async findOrderMessages(userId: string) {
+    const messages = await this.messageRep.find({
+      where: {
+        from: userId
+      }
+    });
+    const messagesResponse = messages.map((mess) => {
+      const { _id, ...messageData } = mess;
+      return messageData;
+    });
+    return messagesResponse;
+  }
+
+  async replyMessages(userId: string, reply: replyDto) {
+    const message = await this.messageRep.findOne({
+      where: {
+        messageId: reply.messageId,
+        to: userId
+      }
+    });
+
+    message.reply = reply.reply;
+    await this.messageRep.save(message);
+
+    return message;
   }
 
 }
