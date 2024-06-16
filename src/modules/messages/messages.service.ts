@@ -49,4 +49,17 @@ export class MessageService {
     return saveMessage;
   }
 
+  async findMessages(userId: string) {
+    const messages = await this.messageRep.find({
+      where: {
+        to: userId
+      }
+    });
+    const messagesResponse = messages.map((mess) => {
+      const { _id, ...messageData } = mess;
+      return messageData;
+    });
+    return messagesResponse;
+  }
+
 }
