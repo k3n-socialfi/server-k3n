@@ -997,7 +997,7 @@ export class TwitterService {
 
   async twitterPointsCalculationNewVersion() {
     const twitterUsers = await this.twitterUsersRep.find();
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 1000; i++) {
       const twPoints = await this.getUserTweetPoints({ username: twitterUsers[i].username });
 
       let view = twPoints.latestTweet.views;
