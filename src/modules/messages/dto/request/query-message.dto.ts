@@ -17,12 +17,6 @@ export class RequestJobsQuery extends PaginationParams {
   @ApiProperty()
   creator: string;
 
-  @IsOptional()
-  @IsString()
-  @ApiProperty({ required: false, enum: JobState })
-  @Type(() => String)
-  jobState: JobState;
-
   //   @IsOptional()
   //   @IsArray()
   //   @ApiProperty({ required: false })
