@@ -148,7 +148,7 @@ export class UserController {
   @Get('profile/:username')
   @ApiResponse({
     description: 'Get profile user by username response',
-    type: SwaggeUserResponseDto
+    type: SwaggerUserResponseDto
   })
   public async getProfileUserById(@Param('username') username: string) {
     return {
