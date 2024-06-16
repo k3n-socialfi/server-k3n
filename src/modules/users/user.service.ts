@@ -742,7 +742,7 @@ export class UserService {
       creationDate: saveTwitterUser.creationDate
     };
 
-    await this.twitterService.twitterPointsCalculationByUsername(username);
+    await this.twitterService.twitterPointsCalculationByUsernameNewVersion(username);
     return saveUser;
   }
 

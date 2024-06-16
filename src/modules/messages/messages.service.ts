@@ -69,6 +69,7 @@ export class MessageService {
         from: userId
       }
     });
+    console.log('user-id', userId);
     const messagesResponse = messages.map((mess) => {
       const { _id, ...messageData } = mess;
       return messageData;
