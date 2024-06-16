@@ -71,5 +71,14 @@ jobs:
     - name: Install pm2
       run: npm install -g pm2@latest
 
-    - name: Run server
-      run: pm2 start ./dist/main.js --name server-k3n -f --update-env
+    - name: Check if server-k3n is running
+      id: check-server
+      run: pm2 describe server-k3n || echo "not found
+
+    - name: Start or restart server
+      run: |
+        if [ "${{ steps.check-server.outputs.stdout }}" == "not found" ]; then
+          pm2 start ./dist/main.js --name server-k3n -f --update-env
+        else
+          pm2 restart server-k3n --update-env
+        fi
