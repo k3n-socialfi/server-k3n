@@ -75,7 +75,7 @@ export class TwitterService {
   }
   // @Cron(CronExpression.EVERY_12_HOURS)
   //@Cron('0 0 * * *')
-  //@Timeout(0)
+  // @Timeout(0)
   async TwitterJob() {
     try {
       console.log('Start run update previous point !');
@@ -997,7 +997,7 @@ export class TwitterService {
 
   async twitterPointsCalculationNewVersion() {
     const twitterUsers = await this.twitterUsersRep.find();
-    for (let i = 0; i < twitterUsers.length; i++) {
+    for (let i = 0; i < 100; i++) {
       const twPoints = await this.getUserTweetPoints({ username: twitterUsers[i].username });
 
       let view = twPoints.latestTweet.views;
