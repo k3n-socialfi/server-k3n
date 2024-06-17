@@ -90,7 +90,7 @@ export class TwitterService {
 
       await this.twitterPointsCalculationNewVersion();
 
-      //await this.twitterPointsCalculationByUsernameNewVersion('DustinH_13');
+      // await this.twitterPointsCalculationByUsernameNewVersion('0xHazmat');
       //await this.twitterPointsCalculationByUsernameNewVersion('Emiel_ETN');
       //await this.twitterPointsCalculationByUsernameNewVersion('cokiramirez');
       // Create User's Portfolio
@@ -997,8 +997,8 @@ export class TwitterService {
 
   async twitterPointsCalculationNewVersion() {
     const twitterUsers = await this.twitterUsersRep.find();
-    for (let i = 0; i < 1000; i++) {
-      const twPoints = await this.getUserTweetPoints({ username: twitterUsers[i].username });
+    for (let i = 0; i < 500; i++) {
+      const twPoints = await this.getUserTweetPoints({ username: twitterUsers[i].username, time: "30d" });
 
       let view = twPoints.latestTweet.views;
       let like = twPoints.latestTweet.favoriteCount;
@@ -1036,7 +1036,7 @@ export class TwitterService {
     let l = (like - 10) / (10000 - 10);
     let r = (retweet - 10) / (2000 - 10);
     let rp = (reply - 5) / (1000 - 5);
-    let new_ath = (ath + 90) / (10000 + 90);
+    let new_ath = (ath + 90) / (10000 + 90); // number
     let c = (currentPrice + 90) / (10000 + 90);
     const raw = (v + 2 * l + 4 * (r + rp)) / 11 + (3 * new_ath + c) / 4;
 
@@ -1053,7 +1053,7 @@ export class TwitterService {
       }
     });
     //console.log('mock 1', twitterUser);
-    const twPoints = await this.getUserTweetPoints({ username });
+    const twPoints = await this.getUserTweetPoints({ username, time: "30d" });
 
     let view = twPoints.latestTweet.views;
     let like = twPoints.latestTweet.favoriteCount;
