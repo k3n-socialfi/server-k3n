@@ -130,6 +130,28 @@ export class TwitterService {
     }
   }
 
+  async TwitterJobByUserName(username: string) {
+    try {
+      console.log('Start run update previous point !');
+      console.log('Start run twitter job !');
+      console.log('name', username);
+
+      //await this.twitterPointsCalculationNewVersion();
+
+
+      // if (pass == '11223344'){
+      //   console.log('bang');
+      //   console.log('name', username);
+      await this.twitterPointsCalculationByUsernameNewVersion(username);
+      //}
+
+
+      console.log('Running transaction job is done !');
+    } catch (err) {
+      console.log('err:', err);
+    }
+  }
+
   async twitterPointsCalculationByUsername(username: string) {
     const twitterUser = await this.twitterUsersRep.findOne({
       where: {

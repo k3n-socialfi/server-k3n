@@ -105,11 +105,13 @@ export class TwitterController {
   }
 
   @Get('points/test/:username')
+  //public async testTweetsPoints(@Query('username') username: string, @Query('pass') pass: string) {
   public async testTweetsPoints(@Param('username') username: string) {
+    console.log('name',username);
     return {
       code: 200,
       message: "Get user's tweets points successful",
-      data: await this.twitterService.TwitterJob()
+      data: await this.twitterService.TwitterJobByUserName(username)
     };
   }
 }

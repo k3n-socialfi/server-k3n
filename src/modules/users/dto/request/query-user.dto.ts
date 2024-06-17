@@ -193,7 +193,7 @@ export class RequestKolsRanking extends PaginationParams {
 
   @IsOptional()
   @Type(() => String)
-  // @IsArray()
+  //@IsArray()
   @ApiProperty({ required: false })
   mentionedProject?: string;
 
