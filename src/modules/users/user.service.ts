@@ -379,11 +379,14 @@ export class UserService {
     }
 
     if (query.mentionedProject) {
+      //whereConditions['mentionedProjects.symbol'] = query.mentionedProject;
+
       whereConditions['$or'] = [
-        { 'mentionedProject.tokenName': query.mentionedProject },
-        { 'mentionedProject.symbol': query.mentionedProject }
+        { 'mentionedProjects.tokenName': query.mentionedProject },
+        { 'mentionedProjects.symbol': query.mentionedProject }
       ];
     }
+
     let sortBy: string;
     let orderBy: number;
     //const sortBy: string;
