@@ -1067,8 +1067,8 @@ export class TwitterService {
     //let l = (like - 10) / (10000 - 10);
     let v: number; view >= 1000000 ? v = 1 : v = (view - 100) / (1000000 - 100);
     let l: number; like >= 10000 ? l = 1 : l = (like - 10) / (10000 - 10);
-    let r = (retweet - 10) / (2000 - 10);
-    let rp = (reply - 5) / (1000 - 5);
+    let r: number; retweet >= 20000 ? r = 1 : r = (retweet - 10) / (20000 - 10);
+    let rp:number; reply >= 10000 ? rp = 1 : rp = (reply - 5) / (10000 - 5);
     let new_ath = (ath + 90) / (10000 + 90); // number
     let c = (currentPrice + 90) / (10000 + 90);
     const raw = (v + 2 * l + 4 * (r + rp)) / 11 + (3 * new_ath + c) / 4;
