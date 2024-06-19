@@ -111,7 +111,7 @@ export class TwitterController {
     return {
       code: 200,
       message: "Get user's tweets points successful",
-      data: await this.twitterService.TwitterJobByUserName(username)
+      data: await this.twitterService.TwitterJob()
     };
   }
 }
