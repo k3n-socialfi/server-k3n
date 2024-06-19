@@ -173,7 +173,6 @@ export class UserService {
 
   async findAllUsers(query: RequestUserQuery): Promise<UserListResponseDto> {
     const skip = query.page * query.limit;
-
     const tagsQuery: any = typeof query.tags === 'string' ? [query.tags] : query.tags;
     // query conditions
     const whereConditions: any = {};
@@ -296,6 +295,35 @@ export class UserService {
     if (query.type) {
       whereConditions.type = { $eq: query.type };
     }
+    // Add conditions for Change1D, Change7D, and Change30D to whereConditions
+    if (query.change1D) {
+      whereConditions['twitterInfo.Change1D'] = { $exists: true, $ne: null };
+    }
+    if (query.change7D) {
+      whereConditions['twitterInfo.Change7D'] = { $exists: true, $ne: null };
+    }
+    if (query.change30D) {
+      whereConditions['twitterInfo.Change30D'] = { $exists: true, $ne: null };
+    }
+
+    let sortBy: string;
+    let orderBy: number;
+    //const sortBy: string;
+    // const sortBy = query.shillScoreSort ? query.shillScoreSort : 'twitterInfo.totalPoints';
+    // const sortBy = query.xFollowerSort ? query.xFollowerSort : 'twitterInfo.followers';
+    if (query.change1D) {
+      sortBy = 'twitterInfo.Change1D';
+      orderBy = query.change1D;
+    } else if (query.change7D) {
+      sortBy = 'twitterInfo.Change7D';
+      orderBy = query.change30D;
+    } else {
+      sortBy = 'twitterInfo.Change1D';
+      orderBy = -1;
+    }
+
+    const sortObject = {};
+    sortObject[sortBy] = orderBy;
 
     const aggregationPipeline = [
       {
@@ -317,7 +345,7 @@ export class UserService {
           'twitterInfo._id': 0
         }
       },
-      { $sort: { 'twitterInfo.totalPoints': -1 } },
+      { $sort: sortObject },
       { $skip: skip > 0 ? skip : 0 },
       { $limit: query.limit }
     ];

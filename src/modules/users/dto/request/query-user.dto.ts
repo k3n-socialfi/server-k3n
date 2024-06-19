@@ -91,6 +91,24 @@ export class RequestKolsTrending extends PaginationParams {
   @ApiProperty({ required: false, enum: DateQuery })
   date?: DateQuery;
 
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @ApiProperty({ required: false })
+  change1D: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @ApiProperty({ required: false })
+  change7D: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @ApiProperty({ required: false })
+  change30D: number;
+
   // @IsOptional()
   // @Type(() => Boolean)
   // @ApiProperty({ required: false })
