@@ -1055,8 +1055,11 @@ export class TwitterService {
 
   async calculateShillScoreNewVersion(view: number, like: number, retweet: number, reply: number, ath: number, currentPrice: number) {
     // Calculate the weighted raw score
-    let v = (view - 100) / (100000 - 100);
-    let l = (like - 10) / (10000 - 10);
+
+    //let v = (view - 100) / (100000 - 100);
+    //let l = (like - 10) / (10000 - 10);
+    let v: number; view >= 1000000 ? v = 1 : v = (view - 100) / (1000000 - 100);
+    let l: number; view >= 10000 ? l = 1 : l = (like - 10) / (10000 - 10);
     let r = (retweet - 10) / (2000 - 10);
     let rp = (reply - 5) / (1000 - 5);
     let new_ath = (ath + 90) / (10000 + 90); // number
