@@ -90,9 +90,10 @@ export class TwitterService {
 
       await this.twitterPointsCalculationNewVersion();
 
-      // await this.twitterPointsCalculationByUsernameNewVersion('0xHazmat');
+      //await this.twitterPointsCalculationByUsernameNewVersion('DustinH_13');
       //await this.twitterPointsCalculationByUsernameNewVersion('Emiel_ETN');
-      //await this.twitterPointsCalculationByUsernameNewVersion('cokiramirez');
+      //await this.twitterPointsCalculationByUsernameNewVersion('TheCryptoLark');
+      // SirKunt,KateMillerGems
       // Create User's Portfolio
       //await this.createUserTwitterPortfolio();
 
@@ -1018,21 +1019,28 @@ export class TwitterService {
   }
 
   async twitterPointsCalculationNewVersion() {
-    const twitterUsers = await this.twitterUsersRep.find();
-    for (let i = 0; i < 500; i++) {
-      const twPoints = await this.getUserTweetPoints({ username: twitterUsers[i].username, time: "30d" });
+    //const twitterUsers = await this.twitterUsersRep.find();
+    const twitterUsers = await this.twitterUsersRep.find({take: 1000});
+    for (let i = 0; i < twitterUsers.length; i++) {
+      const twPoints = await this.getUserTweetPoints({ username: twitterUsers[i].username });
 
-      let view = twPoints.latestTweet.views;
-      let like = twPoints.latestTweet.favoriteCount;
-      let retweet = twPoints.latestTweet.retweetCount;
-      let reply = twPoints.latestTweet.replyCount;
+      let view = twPoints.allTweets.totalViews;
+      let like = twPoints.allTweets.totalFavoriteCount;
+      let retweet = twPoints.allTweets.totalRetweetCount;
+      let reply = twPoints.allTweets.totalReplyCount;
+
       // get user portfolio
       const userPortfolio = await this.getUserTwitterPortfolio(twitterUsers[i].username);
 
       const shillScoresList: number[] = [];
 
       for (let k = 0; k < userPortfolio.length; k++){
-        const shillScore = await this.calculateShillScoreNewVersion(view, like, retweet, reply, userPortfolio[k].ath, userPortfolio[k].currentPrice);
+
+        let ath = (userPortfolio[k].ath - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice * 100;
+
+        let currentPrice = (userPortfolio[k].currentPrice - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice * 100;
+
+        const shillScore = await this.calculateShillScoreNewVersion(view, like, retweet, reply, ath, currentPrice);
         shillScoresList.push(shillScore);
       }
 
@@ -1054,8 +1062,11 @@ export class TwitterService {
 
   async calculateShillScoreNewVersion(view: number, like: number, retweet: number, reply: number, ath: number, currentPrice: number) {
     // Calculate the weighted raw score
-    let v = (view - 100) / (100000 - 100);
-    let l = (like - 10) / (10000 - 10);
+
+    //let v = (view - 100) / (100000 - 100);
+    //let l = (like - 10) / (10000 - 10);
+    let v: number; view >= 1000000 ? v = 1 : v = (view - 100) / (1000000 - 100);
+    let l: number; like >= 10000 ? l = 1 : l = (like - 10) / (10000 - 10);
     let r = (retweet - 10) / (2000 - 10);
     let rp = (reply - 5) / (1000 - 5);
     let new_ath = (ath + 90) / (10000 + 90); // number
@@ -1075,22 +1086,13 @@ export class TwitterService {
       }
     });
     //console.log('mock 1', twitterUser);
-    const twPoints = await this.getUserTweetPoints({ username, time: "30d" });
+    const twPoints = await this.getUserTweetPoints({ username });
 
-    let view = twPoints.latestTweet.views;
-    let like = twPoints.latestTweet.favoriteCount;
-    let retweet = twPoints.latestTweet.retweetCount;
-    let reply = twPoints.latestTweet.replyCount;
+    let view = twPoints.allTweets.totalViews;
+    let like = twPoints.allTweets.totalFavoriteCount;
+    let retweet = twPoints.allTweets.totalRetweetCount;
+    let reply = twPoints.allTweets.totalReplyCount;
 
-    // test only
-    //let view:any = 10000;
-    //let like:any = 5000;
-    //let retweet:any = 1000;
-    //let reply:any = 100;
-    // console.log('view',view);
-    // console.log('like',like);
-    // console.log('retweet',retweet);
-    // console.log('reply',reply);
 
     const userPortfolio = await this.getUserTwitterPortfolio(username);
 
@@ -1099,7 +1101,13 @@ export class TwitterService {
     const shillScoresList: number[] = [];
 
     for (let k = 0; k < userPortfolio.length; k++){
-      const shillScore = await this.calculateShillScoreNewVersion(view, like, retweet, reply, userPortfolio[k].ath, userPortfolio[k].currentPrice);
+
+      let ath = (userPortfolio[k].ath - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice * 100;
+
+      let currentPrice = (userPortfolio[k].currentPrice - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice * 100;
+
+      const shillScore = await this.calculateShillScoreNewVersion(view, like, retweet, reply, ath, currentPrice);
+
       shillScoresList.push(shillScore);
     }
 
