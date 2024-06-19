@@ -92,7 +92,7 @@ export class TwitterService {
 
       //await this.twitterPointsCalculationByUsernameNewVersion('DustinH_13');
       //await this.twitterPointsCalculationByUsernameNewVersion('Emiel_ETN');
-      //await this.twitterPointsCalculationByUsernameNewVersion('TheCryptoLark');
+      // await this.twitterPointsCalculationByUsernameNewVersion('NftKay8');
       // SirKunt,KateMillerGems
       // Create User's Portfolio
       //await this.createUserTwitterPortfolio();
@@ -1036,9 +1036,9 @@ export class TwitterService {
 
       for (let k = 0; k < userPortfolio.length; k++){
 
-        let ath = (userPortfolio[k].ath - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice * 100;
+        let ath = ((userPortfolio[k].ath - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice) * 100;
 
-        let currentPrice = (userPortfolio[k].currentPrice - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice * 100;
+        let currentPrice = ((userPortfolio[k].currentPrice - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice) * 100;
 
         const shillScore = await this.calculateShillScoreNewVersion(view, like, retweet, reply, ath, currentPrice);
         shillScoresList.push(shillScore);
@@ -1069,9 +1069,10 @@ export class TwitterService {
     let l: number; like >= 10000 ? l = 1 : l = (like - 10) / (10000 - 10);
     let r: number; retweet >= 20000 ? r = 1 : r = (retweet - 10) / (20000 - 10);
     let rp:number; reply >= 10000 ? rp = 1 : rp = (reply - 5) / (10000 - 5);
-    let new_ath = (ath + 90) / (10000 + 90); // number
-    let c = (currentPrice + 90) / (10000 + 90);
+    let new_ath: number; ath >= 1 ? new_ath = 0.1 : new_ath = (ath + 90) / (10000 + 90); // number
+    let c:number; currentPrice >= 1 ? c = 0.1 : c = (currentPrice + 90) / (10000 + 90);
     const raw = (v + 2 * l + 4 * (r + rp)) / 11 + (3 * new_ath + c) / 4;
+    console.log(`${view}, ${like}, ${retweet}, ${reply}, ${new_ath}, ${c}, ${raw}`)
 
     // Calculate the shill score
     const shill = 9998 * raw + 1;
