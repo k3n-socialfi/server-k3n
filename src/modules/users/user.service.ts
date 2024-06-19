@@ -297,13 +297,13 @@ export class UserService {
     }
     // Add conditions for Change1D, Change7D, and Change30D to whereConditions
     if (query.change1D) {
-      whereConditions['twitterInfo.Change1D'] = { $exists: true, $ne: null };
+      whereConditions['twitterInfo.Change1D'] = {  $ne: null };
     }
     if (query.change7D) {
-      whereConditions['twitterInfo.Change7D'] = { $exists: true, $ne: null };
+      whereConditions['twitterInfo.Change7D'] = {  $ne: null };
     }
     if (query.change30D) {
-      whereConditions['twitterInfo.Change30D'] = { $exists: true, $ne: null };
+      whereConditions['twitterInfo.Change30D'] = { $ne: null };
     }
 
     let sortBy: string;
@@ -316,6 +316,9 @@ export class UserService {
       orderBy = query.change1D;
     } else if (query.change7D) {
       sortBy = 'twitterInfo.Change7D';
+      orderBy = query.change7D;
+    } else if (query.change30D) {
+      sortBy = 'twitterInfo.Change30D';
       orderBy = query.change30D;
     } else {
       sortBy = 'twitterInfo.Change1D';
