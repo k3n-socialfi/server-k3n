@@ -395,7 +395,7 @@ export class TwitterService {
 
     const res = (await call)?.data;
     // Filter out retweets and quoted tweets
-    const originalTweets = res.results.filter(tweet => !tweet.retweet && username === tweet.user.username);
+    const originalTweets = res?.results?.filter(tweet => !tweet.retweet && username === tweet.user.username);
 
     return originalTweets;
   }
@@ -443,7 +443,7 @@ export class TwitterService {
 
     const res = (await call)?.data;
     // Filter out retweets and quoted tweets
-    const originalTweets = res.results.filter(tweet => !tweet.retweet && username === tweet.user.username);
+    const originalTweets = res?.results?.filter(tweet => !tweet.retweet && username === tweet.user.username);
 
     return originalTweets;
   }
