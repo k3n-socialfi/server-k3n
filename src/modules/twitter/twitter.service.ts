@@ -450,7 +450,7 @@ export class TwitterService {
 
   async getUserTweetPoints({ username, time }: { username: string; time?: string }) {
     const nowMs = Date.now();
-    let tweets = await this.getUserTweets({ username, limit: 20, includePinned: true, includeReplies: false });
+    let tweets = await this.getUserTweets({ username, limit: 20, includePinned: false, includeReplies: false });
     if (!tweets) tweets = [];
     let tweetCount = 0;
     let totalFavoriteCount = 0;
