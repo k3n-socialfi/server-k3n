@@ -973,6 +973,7 @@ export class TwitterService {
       let like = twPoints.allTweets.averageFavoriteCount;
       let retweet = twPoints.allTweets.averageRetweetCount;
       let reply = twPoints.allTweets.averageReplyCount;
+      console.log(`view: ${view}, like: ${like}, rt ${retweet}, rl: ${reply}`)
 
       // get user portfolio
       const userPortfolio = await this.getUserTwitterPortfolio(twitterUsers[i].username);
