@@ -90,7 +90,8 @@ export class UserController {
       data: await this.userService.findKolsTrending({
         page,
         limit,
-        type
+        type,
+        ...query
       })
     };
   }
