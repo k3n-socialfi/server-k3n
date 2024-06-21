@@ -39,7 +39,7 @@ export class TwitterService {
 
   @Cron('0 0 * * *')
   async KolsRankingJob() {
-  // @Timeout(0)
+    // @Timeout(0)
     try {
       console.log('Start update ranking job !');
       await this.updateRanks();
@@ -92,7 +92,7 @@ export class TwitterService {
 
       //await this.twitterPointsCalculationByUsernameNewVersion('DustinH_13');
       //await this.twitterPointsCalculationByUsernameNewVersion('Emiel_ETN');
-      // await this.twitterPointsCalculationByUsernameNewVersion('NftKay8');
+      // await this.twitterPointsCalculationByUsernameNewVersion('CryptoTalkMan');
       // SirKunt,KateMillerGems
       // Create User's Portfolio
       //await this.createUserTwitterPortfolio();
@@ -153,65 +153,6 @@ export class TwitterService {
     }
   }
 
-  async twitterPointsCalculationByUsername(username: string) {
-    const twitterUser = await this.twitterUsersRep.findOne({
-      where: {
-        username
-      }
-    });
-    const twPoints = await this.getUserTweetPoints({ username });
-    let twitterPoints =
-      twPoints.allTweets.totalFavoriteCount +
-      twPoints.allTweets.totalRetweetCount * 2 +
-      twPoints.allTweets.totalReplyCount * 2 +
-      twPoints.allTweets.totalQuoteCount * 3 +
-      twPoints.allTweets.totalViews +
-      twPoints.latestTweet.favoriteCount +
-      twPoints.latestTweet.retweetCount * 2 +
-      twPoints.latestTweet.replyCount * 2 +
-      twPoints.latestTweet.quoteCount * 3 +
-      twPoints.latestTweet.views;
-    // const royaltyPoints = user.royaltyPoints;
-
-    console.log('twitterPoints:', twitterPoints);
-    let savePoint = Math.floor((1000 * twitterPoints) / 50000000);
-    if (savePoint > 1000) savePoint = 1000;
-    if (savePoint < 10 && twitterPoints > 0) savePoint = 10;
-    console.log('savePoint:', savePoint);
-
-    twitterUser.twitterPoints = savePoint;
-
-    await this.twitterUsersRep.save(twitterUser);
-  }
-
-  async twitterPointsCalculation() {
-    const twitterUsers = await this.twitterUsersRep.find();
-    for (let i = 0; i < twitterUsers.length; i++) {
-      const twPoints = await this.getUserTweetPoints({ username: twitterUsers[i].username });
-      let twitterPoints =
-        twPoints.allTweets.totalFavoriteCount +
-        twPoints.allTweets.totalRetweetCount * 2 +
-        twPoints.allTweets.totalReplyCount * 2 +
-        twPoints.allTweets.totalQuoteCount * 3 +
-        twPoints.allTweets.totalViews +
-        twPoints.latestTweet.favoriteCount +
-        twPoints.latestTweet.retweetCount * 2 +
-        twPoints.latestTweet.replyCount * 2 +
-        twPoints.latestTweet.quoteCount * 3 +
-        twPoints.latestTweet.views;
-      // const royaltyPoints = user.royaltyPoints;
-
-      console.log('twitterPoints:', twitterPoints);
-      let savePoint = Math.floor((1000 * twitterPoints) / 50000000);
-      if (savePoint > 1000) savePoint = 1000;
-      if (savePoint < 10 && twitterPoints > 0) savePoint = 10;
-      console.log('savePoint:', savePoint);
-
-      twitterUsers[i].twitterPoints = savePoint;
-
-      await this.twitterUsersRep.save(twitterUsers[i]);
-    }
-  }
   async findTwitterUsersByUsername(username: string) {
     try {
       const headers = this.configService.get('rapidApi');
@@ -453,7 +394,10 @@ export class TwitterService {
       .toPromise();
 
     const res = (await call)?.data;
-    return res;
+    // Filter out retweets and quoted tweets
+    const originalTweets = res.results.filter(tweet => !tweet.retweet && username === tweet.user.username);
+
+    return originalTweets;
   }
 
   async getUserTweetsContinuation({
@@ -498,30 +442,26 @@ export class TwitterService {
       .toPromise();
 
     const res = (await call)?.data;
-    return res;
+    // Filter out retweets and quoted tweets
+    const originalTweets = res.results.filter(tweet => !tweet.retweet && username === tweet.user.username);
+
+    return originalTweets;
   }
 
   async getUserTweetPoints({ username, time }: { username: string; time?: string }) {
     const nowMs = Date.now();
     let tweets = await this.getUserTweets({ username, limit: 20, includePinned: true, includeReplies: false });
-    if (!tweets || !tweets?.results) tweets.results = [];
+    if (!tweets) tweets = [];
+    let tweetCount = 0;
     let totalFavoriteCount = 0;
     let totalRetweetCount = 0;
     let totalReplyCount = 0;
     let totalQuoteCount = 0;
     let totalViews = 0;
-    tweets.results.map((tweet: any) => {
+    tweets.forEach((tweet: any) => {
       const tweetTime = new Date(tweet.creation_date);
-      if (time) {
-        const intervalTime = IntervalTime[time];
-        if (tweetTime.getTime() >= nowMs - intervalTime * 1000) {
-          totalFavoriteCount += tweet.favorite_count;
-          totalRetweetCount += tweet.retweet_count;
-          totalReplyCount += tweet.reply_count;
-          totalQuoteCount += tweet.quote_count;
-          totalViews += tweet.views;
-        }
-      } else {
+      if (!time || (time && tweetTime.getTime() >= nowMs - IntervalTime[time] * 1000)) {
+        tweetCount++;
         totalFavoriteCount += tweet.favorite_count;
         totalRetweetCount += tweet.retweet_count;
         totalReplyCount += tweet.reply_count;
@@ -529,13 +469,18 @@ export class TwitterService {
         totalViews += tweet.views;
       }
     });
+    const averageFavoriteCount = tweetCount > 0 ? totalFavoriteCount / tweetCount : 0;
+    const averageRetweetCount = tweetCount > 0 ? totalRetweetCount / tweetCount : 0;
+    const averageReplyCount = tweetCount > 0 ? totalReplyCount / tweetCount : 0;
+    const averageQuoteCount = tweetCount > 0 ? totalQuoteCount / tweetCount : 0;
+    const averageViews = tweetCount > 0 ? totalViews / tweetCount : 0;
     return {
       allTweets: {
-        totalFavoriteCount,
-        totalRetweetCount,
-        totalReplyCount,
-        totalQuoteCount,
-        totalViews
+        averageFavoriteCount,
+        averageRetweetCount,
+        averageReplyCount,
+        averageQuoteCount,
+        averageViews
       },
       latestTweet: {
         favoriteCount: tweets[0]?.favorite_count || 0,
@@ -1019,35 +964,31 @@ export class TwitterService {
   }
 
   async twitterPointsCalculationNewVersion() {
-    //const twitterUsers = await this.twitterUsersRep.find();
-    const twitterUsers = await this.twitterUsersRep.find({take: 1000});
+    const twitterUsers = await this.twitterUsersRep.find();
+    // const twitterUsers = await this.twitterUsersRep.find({take: 1000});
     for (let i = 0; i < twitterUsers.length; i++) {
       const twPoints = await this.getUserTweetPoints({ username: twitterUsers[i].username });
 
-      let view = twPoints.allTweets.totalViews;
-      let like = twPoints.allTweets.totalFavoriteCount;
-      let retweet = twPoints.allTweets.totalRetweetCount;
-      let reply = twPoints.allTweets.totalReplyCount;
+      let view = twPoints.allTweets.averageViews;
+      let like = twPoints.allTweets.averageFavoriteCount;
+      let retweet = twPoints.allTweets.averageRetweetCount;
+      let reply = twPoints.allTweets.averageReplyCount;
 
       // get user portfolio
       const userPortfolio = await this.getUserTwitterPortfolio(twitterUsers[i].username);
 
-      const shillScoresList: number[] = [];
-
+      let ath: number;
+      let currentPrice: number;
       for (let k = 0; k < userPortfolio.length; k++){
+        ath = (((userPortfolio[k].ath - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice) * 100) / userPortfolio.length;
 
-        let ath = ((userPortfolio[k].ath - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice) * 100;
-
-        let currentPrice = ((userPortfolio[k].currentPrice - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice) * 100;
-
-        const shillScore = await this.calculateShillScoreNewVersion(view, like, retweet, reply, ath, currentPrice);
-        shillScoresList.push(shillScore);
+        currentPrice = (((userPortfolio[k].currentPrice - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice) * 100) / userPortfolio.length;
       }
+      const shillScore = await this.calculateShillScoreNewVersion(view, like, retweet, reply, ath, currentPrice);
 
       //console.log('shill list',shillScoresList);
       // calculate average shill score
-      const total = shillScoresList.reduce((sum, score) => sum + score, 0);
-      let finalScore = Math.floor(total / shillScoresList.length);
+      let finalScore = Math.floor(shillScore);
       //console.log('shill score',finalScore);
 
       //if (finalScore > 9999) finalScore = 9999;
@@ -1065,14 +1006,15 @@ export class TwitterService {
 
     //let v = (view - 100) / (100000 - 100);
     //let l = (like - 10) / (10000 - 10);
-    let v: number; view >= 1000000 ? v = 1 : v = (view - 100) / (1000000 - 100);
-    let l: number; like >= 10000 ? l = 1 : l = (like - 10) / (10000 - 10);
-    let r: number; retweet >= 20000 ? r = 1 : r = (retweet - 10) / (20000 - 10);
-    let rp:number; reply >= 10000 ? rp = 1 : rp = (reply - 5) / (10000 - 5);
-    let new_ath: number; ath >= 1 ? new_ath = 0.1 : new_ath = (ath + 90) / (10000 + 90); // number
-    let c:number; currentPrice >= 1 ? c = 0.1 : c = (currentPrice + 90) / (10000 + 90);
-    const raw = (v + 2 * l + 4 * (r + rp)) / 11 + (3 * new_ath + c) / 4;
-    console.log(`${view}, ${like}, ${retweet}, ${reply}, ${new_ath}, ${c}, ${raw}`)
+    let v: number; view >= 100000 ? v = 1 : v = (view - 100) / (100000 - 100);
+    let l: number; like >= 1000 ? l = 1 : l = (like - 10) / (1000 - 10);
+    let r: number; retweet >= 2000 ? r = 1 : r = (retweet - 10) / (2000 - 10);
+    let rp:number; reply >= 1000 ? rp = 1 : rp = (reply - 5) / (1000 - 5);
+    let new_ath: number; ath >= 10000 ? new_ath = 1 : new_ath = (ath + 90) / (10000 + 90); // number
+    let c:number; currentPrice >= 10000 ? c = 1 : c = (currentPrice + 90) / (10000 + 90);
+    const raw = (((v + 2 * l + 4 * (r + rp)) / 11) + ((3 * new_ath + c) / 4)) / 2;
+    console.log(`ath: ${ath}, current: ${currentPrice}`)
+    console.log(`view: ${v},like: ${l},retweet: ${r},reply: ${rp},new_ath: ${new_ath},c: ${c}, raw: ${raw}`)
 
     // Calculate the shill score
     const shill = 9998 * raw + 1;
@@ -1089,42 +1031,35 @@ export class TwitterService {
     //console.log('mock 1', twitterUser);
     const twPoints = await this.getUserTweetPoints({ username });
 
-    let view = twPoints.allTweets.totalViews;
-    let like = twPoints.allTweets.totalFavoriteCount;
-    let retweet = twPoints.allTweets.totalRetweetCount;
-    let reply = twPoints.allTweets.totalReplyCount;
+    let view = twPoints.allTweets.averageViews;
+    let like = twPoints.allTweets.averageFavoriteCount;
+    let retweet = twPoints.allTweets.averageRetweetCount;
+    let reply = twPoints.allTweets.averageReplyCount;
+    console.log(`view: ${view}, like: ${like}, rt ${retweet}, rl: ${reply}`)
 
 
     const userPortfolio = await this.getUserTwitterPortfolio(username);
 
     //console.log('mock 2', userPortfolio);
 
-    const shillScoresList: number[] = [];
-
+    let ath: number = 0;
+    let currentPrice: number = 0;
     for (let k = 0; k < userPortfolio.length; k++){
 
-      let ath = (userPortfolio[k].ath - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice * 100;
+      ath = (((userPortfolio[k].ath - userPortfolio[k].shillPrice) * 100) / userPortfolio[k].shillPrice )/ userPortfolio.length;
 
-      let currentPrice = (userPortfolio[k].currentPrice - userPortfolio[k].shillPrice) / userPortfolio[k].shillPrice * 100;
-
-      const shillScore = await this.calculateShillScoreNewVersion(view, like, retweet, reply, ath, currentPrice);
-
-      shillScoresList.push(shillScore);
+      currentPrice = (((userPortfolio[k].currentPrice - userPortfolio[k].shillPrice) * 100) / userPortfolio[k].shillPrice) / userPortfolio.length;
     }
+    let shillScore = await this.calculateShillScoreNewVersion(view, like, retweet, reply, ath, currentPrice);
 
-    console.log('shill score list',shillScoresList);
+    console.log('shill score list', shillScore);
     // calculate average shill score
-    const total = shillScoresList.reduce((sum, score) => sum + score, 0);
-    console.log('total',total);
-    let finalScore = Math.floor(total / shillScoresList.length);
-
-    console.log('final score',finalScore);
 
     //if (finalScore > 9999) finalScore = 9999;
-    if (finalScore < 1) finalScore = 1;
-    console.log('savePoint:', finalScore);
+    if (shillScore < 1) shillScore = 1;
+    console.log('savePoint:', shillScore);
 
-    twitterUser.twitterPoints = finalScore;
+    twitterUser.twitterPoints = Math.floor(shillScore);
 
     await this.twitterUsersRep.save(twitterUser);
   }
