@@ -419,11 +419,13 @@ export class UserService {
     }
 
     if (query.location) {
-      whereConditions.location = { $eq: query.location };
+      //whereConditions.location = { $eq: query.location };
+      whereConditions.location = { $regex: query.location, $options: 'i' };
     }
 
     if (query.userName) {
-      whereConditions.username = { $eq: query.userName };
+      //whereConditions.username = { $eq: query.userName };
+      whereConditions.username = { $regex: query.userName, $options: 'i' };
     }
 
     let sortBy: string;
