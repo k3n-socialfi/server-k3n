@@ -418,6 +418,14 @@ export class UserService {
       ];
     }
 
+    if (query.location) {
+      whereConditions.location = { $eq: query.location };
+    }
+
+    if (query.userName) {
+      whereConditions.username = { $eq: query.userName };
+    }
+
     let sortBy: string;
     let orderBy: number;
     //const sortBy: string;
