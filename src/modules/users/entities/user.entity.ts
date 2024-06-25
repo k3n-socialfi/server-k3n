@@ -212,7 +212,7 @@ export class User extends AbstractEntity {
   // @BeforeUpdate()
   // async beforeUpdate() {
   // if (!this.fullName) this.fullName = null;
-  // if (!this.email) this.email = null;
+  // if (!thi
   // if (!this.phoneNumber) this.phoneNumber = null;
   // if (!this.wallets) this.wallets = [];
   // if (!this.socialProfiles) this.socialProfiles = [];

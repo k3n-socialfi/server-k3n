@@ -226,4 +226,16 @@ export class RequestKolsRanking extends PaginationParams {
   @IsNumber()
   @ApiProperty({ required: false })
   xFollowerSort: number;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  @ApiProperty({ required: false})
+  location?: string;
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  @ApiProperty({ required: false})
+  userName?: string;
 }
