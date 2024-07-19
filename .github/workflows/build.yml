@@ -54,7 +54,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.npm
-        key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/pnpm-lock.json') }}
+        key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ runner.os }}-node-${{ matrix.node-version }}-
           ${{ runner.os }}-node-
@@ -62,11 +62,20 @@ jobs:
     - name: Install pnpm
       run: npm install -g pnpm
 
+    - name: Clean pnpm store
+      run: pnpm store prune
+
+    - name: Remove node_modules and pnpm-lock.yaml
+      run: |
+        rm -rf node_modules
+        rm -f pnpm-lock.yaml
+
     - name: Install Nest CLI
       run: npm install -g @nestjs/cli --legacy-peer-deps
 
     - name: Install dependencies
-      run: pnpm install --strict-peer-dependencies --verbose
+      run: |
+        for i in {1..5}; do pnpm install --strict-peer-dependencies --verbose && break || sleep 10; done
 
     - name: Build project
       run: pnpm run build
