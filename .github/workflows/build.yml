@@ -60,7 +60,7 @@ jobs:
           ${{ runner.os }}-node-
 
     - name: Install Nest CLI
-      run: npm install -g @nestjs/cli
+      run: npm install -g @nestjs/cli --legacy-peer-deps
 
     - name: Install pnpm
       run: npm install -g pnpm
