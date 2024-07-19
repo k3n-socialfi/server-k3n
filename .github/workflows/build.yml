@@ -59,20 +59,21 @@ jobs:
           ${{ runner.os }}-node-${{ matrix.node-version }}-
           ${{ runner.os }}-node-
 
+    - name: Install Nest CLI
+      run: npm install -g @nestjs/cli
+
     - name: Install pnpm
       run: npm install -g pnpm
+
+    - name: Install pm2
+      run: npm install -g pm2@latest
 
     - name: Install dependencies
       run: pnpm install --strict-peer-dependencies --verbose
 
-    - name: Install Nest CLI
-      run: npm install -g @nestjs/cli
-
     - name: Build project
       run: pnpm run build
 
-    - name: Install pm2
-      run: pnpm install -g pm2@latest
 
     - name: Check if server-k3n is running
       id: check-server
